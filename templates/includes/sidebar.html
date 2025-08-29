@@ -1,0 +1,54 @@
+{% load static %}
+
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar elevation-4 sidebar-dark-info">
+    <!-- Brand Logo and User Panel (same as above) -->
+     <a href="" class="d-flex justify-content-center text-white text-xl text-decoration-none" class="brank-link">
+        <img src="{% static 'admin/images/user.jpg' %}" class="navbar-logo" width="160" height="90" alt="logo" />
+    </a>
+    <!-- Sidebar Menu -->
+    <nav class="mt-4" style="overflow-y: scroll;">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            {% for item in sidebar_menu %}
+                {% if item.is_header %}
+                    <li class="nav-header">{{ item.name }}</li>
+                    
+                    {% for child in item.children %}
+                        <li class="nav-item">
+                            <a href="{% url child.url_name %}" 
+                               class="nav-link {% if child.active %}active{% endif %}">
+                                {% if child.icon %}<i class="nav-icon {{ child.icon }}"></i>{% endif %}
+                                <p>{{ child.name }}</p>
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="nav-item {% if item.has_children %}has-treeview{% endif %} {% if item.active %}menu-open{% endif %}">
+                        <a href="{% if item.url_name %}{% url item.url_name %}{% else %}#{% endif %}" 
+                           class="nav-link {% if item.active %}active{% endif %}">
+                            {% if item.icon %}<i class="nav-icon {{ item.icon }}"></i>{% endif %}
+                            <p>
+                                {{ item.name }}
+                                {% if item.has_children %}<i class="right fas fa-angle-left"></i>{% endif %}
+                            </p>
+                        </a>
+                        
+                        {% if item.has_children %}
+                            <ul class="nav nav-treeview">
+                                {% for child in item.children %}
+                                    <li class="nav-item">
+                                        <a href="{% url child.url_name %}" 
+                                           class="nav-link {% if child.active %}active{% endif %}">
+                                            {% if child.icon %}<i class="nav-icon {{ child.icon }}"></i>{% endif %}
+                                            <p>{{ child.name }}</p>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+</aside>

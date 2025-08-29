@@ -1,0 +1,66 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Poppins", sans-serif;
+    background: #ffffff;
+  }
+  
+  @keyframes show-toast {
+    0% {
+      bottom: -100%;
+    }
+  
+    20% {
+      bottom: 100px;
+    }
+  
+    80% {
+      bottom: 100px;
+    }
+  
+    100% {
+      bottom: -100%;
+    }
+  }
+  
+  .show-notification {
+    position: absolute;
+    top: 0;
+    right: 20px;
+    animation-name: show-toast;
+    animation-duration: 8s;
+    z-index: 99;
+  }
+  /* Hide the default file input */
+  .custom-file-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+    z-index: -1;
+  }
+  
+  /* Style the "Choose Image" button */
+  .custom-file-label {
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: #4287f5;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Highlight the "Choose Image" button on hover */
+  .custom-file-input:hover + .custom-file-label {
+    background-color: #1e5bf5;
+  }
+  
+  /* Add a border around the "Choose Image" button when it gains focus */
+  .custom-file-input:focus + .custom-file-label {
+    outline: 2px solid #4287f5;
+  }

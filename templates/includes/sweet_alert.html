@@ -1,0 +1,170 @@
+{% load static %}
+
+<script>
+/**
+ * Enhanced SweetAlert message handler
+ */
+(function() {
+    {% if messages %}
+        {% for message in messages %}
+            const messageType = '{{ message.tags }}';
+            const messageText = '{{ message|escapejs }}';
+            
+            // Show message with appropriate styling
+            showMessage(messageType, messageText);
+        {% endfor %}
+    {% endif %}
+})();
+
+/**
+ * Universal function to show messages with SweetAlert2
+ * @param {string} type - Type of message (success, danger, info, warning)
+ * @param {string} message - Message text
+ * @param {object} options - Additional SweetAlert2 options
+ */
+function showMessage(type, message, options = {}) {
+    // Default configuration
+    const defaultConfig = {
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    };
+    
+    // Map message types to SweetAlert2 icons and titles
+    const typeConfig = {
+        'success': {
+            icon: 'success',
+            title: 'Success!',
+            background: '#d4edda',
+            color: '#155724'
+        },
+        'danger': {
+            icon: 'error',
+            title: 'Error!',
+            background: '#f8d7da',
+            color: '#721c24'
+        },
+        'error': {
+            icon: 'error',
+            title: 'Error!',
+            background: '#f8d7da',
+            color: '#721c24'
+        },
+        'info': {
+            icon: 'info',
+            title: 'Info',
+            background: '#d1ecf1',
+            color: '#0c5460'
+        },
+        'warning': {
+            icon: 'warning',
+            title: 'Warning!',
+            background: '#fff3cd',
+            color: '#856404'
+        }
+    };
+    
+    // Get configuration for the message type
+    const config = typeConfig[type] || typeConfig['info'];
+    
+    // Merge configurations
+    const finalConfig = {
+        ...defaultConfig,
+        ...config,
+        text: message,
+        ...options
+    };
+    
+    // Show the alert
+    Swal.fire(finalConfig);
+}
+
+/**
+ * Show a confirmation dialog
+ * @param {string} title - Dialog title
+ * @param {string} text - Dialog text
+ * @param {string} confirmText - Confirm button text
+ * @param {string} cancelText - Cancel button text
+ * @param {function} onConfirm - Callback function when confirmed
+ * @param {function} onCancel - Callback function when cancelled
+ */
+function showConfirmDialog(title, text, confirmText = 'Yes', cancelText = 'Cancel', onConfirm = null, onCancel = null) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: confirmText,
+        cancelButtonText: cancelText,
+        reverseButtons: true,
+        focusCancel: true
+    }).then((result) => {
+        if (result.isConfirmed && typeof onConfirm === 'function') {
+            onConfirm();
+        } else if (result.isDismissed && typeof onCancel === 'function') {
+            onCancel();
+        }
+    });
+}
+
+/**
+ * Show a loading dialog
+ * @param {string} title - Loading title
+ * @param {string} text - Loading text
+ */
+function showLoading(title = 'Loading...', text = 'Please wait') {
+    Swal.fire({
+        title: title,
+        text: text,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+
+/**
+ * Hide loading dialog
+ */
+function hideLoading() {
+    Swal.close();
+}
+
+/**
+ * Show input dialog
+ * @param {string} title - Dialog title
+ * @param {string} inputPlaceholder - Input placeholder
+ * @param {string} inputValue - Default input value
+ * @param {function} onSubmit - Callback function with input value
+ */
+function showInputDialog(title, inputPlaceholder = '', inputValue = '', onSubmit = null) {
+    Swal.fire({
+        title: title,
+        input: 'text',
+        inputPlaceholder: inputPlaceholder,
+        inputValue: inputValue,
+        showCancelButton: true,
+        confirmButtonText: 'Submit',
+        cancelButtonText: 'Cancel',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to enter something!';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && typeof onSubmit === 'function') {
+            onSubmit(result.value);
+        }
+    });
+}
+</script>

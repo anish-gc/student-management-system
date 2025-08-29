@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Metadata{% endblock %}
+
+
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Metadata</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'students:metadata' %}">Metadata List</a>
+                    </li>
+                    <li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Metadata</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">Metadata Information</h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="metadata-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.field.widget.input_type == "checkbox" %}
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                                    class="form-check-input" {% if field.value %}checked{% endif %}>
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                            </div>
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-group col-md-6">
+                                            <label for="{{ field.id_for_label }}" 
+                                                   class="{% if field.field.required %}required{% endif %}">
+                                                {{ field.label }}
+                                            </label>
+                                            {% if field.name == 'value' %}
+                                                <textarea name="{{ field.name }}" 
+                                                          id="{{ field.id_for_label }}" 
+                                                          class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                                          rows="4"
+                                                          {% if field.field.required %}required{% endif %}>{{ field.value|default_if_none:'' }}</textarea>
+                                            {% else %}
+                                                <input type="{{ field.field.widget.input_type }}" 
+                                                       name="{{ field.name }}" 
+                                                       id="{{ field.id_for_label }}" 
+                                                       class="form-control {% if field.errors %}is-invalid{% endif %}" 
+                                                       value="{{ field.value|default_if_none:'' }}"
+                                                       {% if field.field.required %}required{% endif %}>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.students.add_metadata or perms.students.change_metadata %}
+                                <button type="submit" class="btn btn-success" id="save_metadata_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        {% if form.instance.pk %}Update{% else %}Save{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary float-right" onclick="history.back()">
+                                Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js_files %}
+
+<script>
+$(document).ready(function() {
+    // For edit mode, make key field read-only
+    const isEditMode = {% if form.instance.pk %}true{% else %}false{% endif %};
+    
+    if (isEditMode) {
+        $('#id_key').prop('readonly', true).addClass('bg-light');
+    }
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_key: { 
+                required: true,
+                minlength: 1,
+                maxlength: 100
+            },
+            id_value: {
+                required: true,
+                minlength: 1
+            }
+        };
+        
+        globalFormValidation('#metadata-form', validationRules);
+    }
+
+    let isSubmitting = false;
+
+    $('#metadata-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = "{% if form.instance.pk %}{% url 'students:metadata-edit' form.instance.pk %}{% else %}{% url 'students:metadata-add' %}{% endif %}";
+            const redirectUrl = "{% url 'students:metadata' %}";
+            
+            // Show loading state
+            $('#save_metadata_button').prop('disabled', true);
+            $('#save_metadata_button .spinner-border').removeClass('d-none');
+            $('#save_metadata_button .btn-text').text('Saving...');
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "metadata-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_metadata_button').prop('disabled', false);
+                    $('#save_metadata_button .spinner-border').addClass('d-none');
+                    $('#save_metadata_button .btn-text').text('{% if form.instance.pk %}Update{% else %}Save{% endif %}');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

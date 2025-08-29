@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Staff List
+{% endblock %}
+
+{% load static %}
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Staffs</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Staff List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row justify-content-between align-items-center">
+                            <!-- Filter Form Section -->
+                            <div class="col-md-8 col-sm-12">
+                                <form method="get" action="" id="filterForm">
+                                    <div class="row align-items-center">
+                                        <!-- Search Input -->
+                                        <div class="col-md-3 col-sm-6 mb-2">
+                                            <input type="text" class="form-control" name="search" 
+                                                   placeholder="Search staff..." 
+                                                   value="{{ current_filters.search }}"
+                                                   data-toggle="tooltip" title="Search by name, username, or email">
+                                        </div>
+                                        
+                                        <!-- Role Dropdown -->
+                                        <div class="col-md-3 col-sm-6 mb-2">
+                                            <select class="form-control" name="group" id="groupFilter">
+                                                <option value="">All Roles</option>
+                                                {% for group in groups %}
+                                                <option value="{{ group.name }}" 
+                                                    {% if current_filters.group == group.name %}selected{% endif %}>
+                                                    {{ group.name|title }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Status Dropdown -->
+                                        <div class="col-md-3 col-sm-6 mb-2">
+                                            <select class="form-control" name="active_status" id="statusFilter">
+                                                <option value="">All Status</option>
+                                                <option value="True" 
+                                                    {% if current_filters.active_status == "True" %}selected{% endif %}>
+                                                    Active
+                                                </option>
+                                                <option value="False" 
+                                                    {% if current_filters.active_status == "False" %}selected{% endif %}>
+                                                    Inactive
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Filter and Reset Buttons -->
+                                        <div class="col-md-3 col-sm-6 mb-2">
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="submit" class="btn btn-primary btn-sm" 
+                                                    data-toggle="tooltip" title="Apply filters">
+                                                    <i class="fas fa-filter"></i> Filter
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="clearFilters()" data-toggle="tooltip" title="Clear filters">
+                                                    <i class="fas fa-times"></i> Clear
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Add User Button -->
+                            {% if perms.auth.add_user %}
+                            <div class="col-md-4 col-sm-12 text-right">
+                                <a href="{% url 'accounts:staff-add' %}" class="btn btn-success" 
+                                   data-toggle="tooltip" data-placement="left" title="Add New Staff">
+                                    <i class="fa fa-plus"></i> Add Staff
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Results Info -->
+                        {% if is_paginated %}
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                                    of {{ paginator.count }} staff members
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="staffTable">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="5%">S.N</th>
+                                        <th>Full Name</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th width="10%">Status</th>
+                                        {% if perms.auth.change_user %}
+                                        <th width="15%">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in queryset %}
+                                    <tr data-user-id="{{ user.id }}">
+                                        <td>
+                                            {% if is_paginated %}
+                                                {{ page_obj.start_index|add:forloop.counter0 }}
+                                            {% else %}
+                                                {{ forloop.counter }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.get_full_name|default:"-" }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email|default:"-" }}</td>
+                                        <td class="role-cell">
+                                            {% if user.is_superuser %}
+                                                <span class="badge badge-danger">SuperUser</span>
+                                            {% else %}
+                                                {% for role in user.groups.all %}
+                                                    <span class="badge badge-primary">{{ role.name|title }}</span>
+                                                    {% if not forloop.last %} {% endif %}
+                                                {% empty %}
+                                                    <span class="badge badge-secondary">No Role</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="status-cell">
+                                            {% if user.is_active %}
+                                                <span class="badge badge-success">
+                                                    <i class="fa fa-check"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fa fa-times"></i> Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                       
+                                        {% if perms.auth.change_user %}
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if perms.auth.change_user %}
+                                                <a href="{% url 'accounts:staff-edit' user.id %}" 
+                                                   class="btn btn-info btn-sm" data-toggle="tooltip" title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if perms.auth.delete_user and not user.is_superuser and user != request.user %}
+                                               <button class="btn btn-danger btn-sm" 
+                                                        onclick="confirmDelete(event, 'staff', '{{ user.id }}', '{{ user.get_full_name|default:user.username }}')"
+                                                        data-toggle="tooltip" title="Delete Staff">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="{% if perms.auth.change_user %}7{% else %}6{% endif %}" 
+                                            class="text-center text-muted py-4">
+                                            <i class="fas fa-users fa-3x text-muted mb-3"></i><br>
+                                            No staff members found.
+                                            {% if current_filters.search or current_filters.group or current_filters.active_status %}
+                                            <br><small>Try adjusting your filters.</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <nav aria-label="Staff pagination">
+                                    <ul class="pagination justify-content-center">
+                                        {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                        {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                                
+                                <!-- Page size selector -->
+                                <div class="text-center mt-2">
+                                    <small class="text-muted">
+                                        Items per page: 
+                                        <select class="form-control form-control-sm d-inline-block w-auto" 
+                                                name="page_size" id="pageSizeSelect">
+                                            <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                                            <option value="15" {% if request.GET.page_size == "15" or not request.GET.page_size %}selected{% endif %}>15</option>
+                                            <option value="25" {% if request.GET.page_size == "25" %}selected{% endif %}>25</option>
+                                            <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                                        </select>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block js_files %}
+<!-- Pass groups data to JavaScript -->
+<script>
+    // Make groups data available to JavaScript
+    window.groupsData = [
+        {% for group in groups %}
+        {
+            value: "{{ group.name }}",
+            text: "{{ group.name|title }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+</script>
+
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Page size change handler
+    $('#pageSizeSelect').change(function() {
+        let url = new URL(window.location);
+        url.searchParams.set('page_size', this.value);
+        url.searchParams.delete('page'); // Reset to page 1
+        window.location.href = url.toString();
+    });
+    
+    // Auto-submit form on filter change (optional)
+    $('#groupFilter, #statusFilter').change(function() {
+        // Uncomment the line below to auto-submit on filter change
+        // $('#filterForm').submit();
+    });
+    
+    // Search input enter key handler
+    $('input[name="search"]').keypress(function(e) {
+        if (e.which == 13) { // Enter key
+            $('#filterForm').submit();
+        }
+    });
+});
+
+/**
+ * Clear all filters and reload the page
+ */
+function clearFilters() {
+    // Reset form
+    document.getElementById('filterForm').reset();
+    
+    // Redirect to the same page without query parameters
+    window.location.href = window.location.pathname;
+}
+
+
+</script>
+{% endblock %}

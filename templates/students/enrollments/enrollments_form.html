@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} Enrollment{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'admin/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if is_editing %}Edit{% else %}Add{% endif %} Enrollment</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'students:enrollments' %}">Enrollment List</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if is_editing %}Edit{% else %}Add{% endif %} Enrollment
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% if is_editing %}
+                <div class="enrollment-info-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="card-title mb-1">
+                                <i class="fas fa-user-graduate mr-2"></i>
+                                {{ enrollment_obj.student.full_name }} - {{ enrollment_obj.course.name }}
+                            </h4>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar mr-2"></i>Enrolled: {{ enrollment_obj.enrollment_date|date:"M d, Y" }}
+                                {% if enrollment_obj.completion_date %}
+                                <span class="ml-3">
+                                    <i class="fas fa-check mr-2"></i>Completed: {{ enrollment_obj.completion_date|date:"M d, Y" }}
+                                </span>
+                                {% endif %}
+                            </p>
+                            {% if enrollment_obj.grade %}
+                            <p class="mb-0 mt-2">
+                                <span class="badge badge-light p-2">
+                                    Grade: <strong>{{ enrollment_obj.grade }}</strong>
+                                    {% if enrollment_obj.score %} | Score: <strong>{{ enrollment_obj.score }}%</strong>{% endif %}
+                                    | GPA: <strong>{{ enrollment_obj.grade_points }}</strong>
+                                </span>
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <span class="badge badge-light p-2">
+                                {% if enrollment_obj.is_active %}
+                                    <i class="fa fa-check text-success"></i> Active
+                                {% else %}
+                                    <i class="fa fa-times text-danger"></i> Inactive
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-graduation-cap mr-2"></i>
+                            {% if is_editing %}
+                                Edit Enrollment Information
+                            {% else %}
+                                Enrollment Information
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="enrollment-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Student Selection -->
+                                <div class="form-group col-md-6">
+                                    <label for="id_student" class="required">
+                                        <i class="fas fa-user mr-1"></i>Student
+                                    </label>
+                                    <select name="student" class="form-control select2bs4" id="id_student" required>
+                                        <option value="">Select a student...</option>
+                                        {% for student in form.student.field.queryset %}
+                                            <option value="{{ student.id }}" 
+                                                {% if is_editing and student == form.instance.student %}selected
+                                                {% elif not is_editing and form.student.value == student.id %}selected{% endif %}>
+                                                {{ student.full_name }} - {{ student.student_id|default:"" }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.student.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.student.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.student.help_text }}</small>
+                                </div>
+
+                                <!-- Course Selection -->
+                                <div class="form-group col-md-6">
+                                    <label for="id_course" class="required">
+                                        <i class="fas fa-book mr-1"></i>Course
+                                    </label>
+                                    <select name="course" class="form-control select2bs4" id="id_course" required>
+                                        <option value="">Select a course...</option>
+                                        {% for course in form.course.field.queryset %}
+                                            <option value="{{ course.id }}" 
+                                                {% if is_editing and course == form.instance.course %}selected
+                                                {% elif not is_editing and form.course.value == course.id %}selected{% endif %}>
+                                                {{ course.name }} ({{ course.course_code }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.course.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.course.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.course.help_text }}</small>
+                                </div>
+
+                                <!-- Score Input -->
+                                <div class="form-group col-md-6">
+                                    <label for="id_score">
+                                        <i class="fas fa-percent mr-1"></i>Score
+                                    </label>
+                                    <div class="input-group score-input">
+                                        {{ form.score }}
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    {% if form.score.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.score.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.score.help_text }}</small>
+                                </div>
+
+                                <!-- Grade Selection -->
+                                <div class="form-group col-md-6">
+                                    <label for="id_grade">
+                                        <i class="fas fa-medal mr-1"></i>Grade
+                                    </label>
+                                    {{ form.grade }}
+                                    {% if form.grade.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.grade.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.grade.help_text }}</small>
+                                    
+                                    <!-- Grade Preview -->
+                                    <div class="grade-preview d-none" id="gradePreview">
+                                        <div class="grade-info">
+                                            <span class="badge badge-primary" id="suggestedGrade"></span>
+                                            <small class="text-muted">Suggested based on score</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Completion Date -->
+                                <div class="form-group col-md-6">
+                                    <label for="id_completion_date">
+                                        <i class="fas fa-calendar-check mr-1"></i>Completion Date
+                                    </label>
+                                    {{ form.completion_date }}
+                                    {% if form.completion_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.completion_date.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.completion_date.help_text }}</small>
+                                </div>
+
+                                <!-- Active Status -->
+                                <div class="form-group col-md-6">
+                                    <div class="form-check mt-4">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="id_is_active">
+                                            <i class="fas fa-toggle-on mr-1"></i>Active Enrollment
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.is_active.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.is_active.help_text }}</small>
+                                </div>
+
+                                <!-- Metadata Selection -->
+                                <div class="form-group col-md-12">
+                                    <label for="id_metadata">
+                                        <i class="fas fa-tags mr-1"></i>Metadata
+                                    </label>
+                                    <select name="metadata" class="form-control select2bs4" id="id_metadata" multiple>
+                                        {% for metadata in form.metadata.field.queryset %}
+                                            <option value="{{ metadata.id }}" 
+                                                {% if is_editing and metadata in form.instance.metadata.all %}selected{% endif %}>
+                                                {{ metadata.key }} - {{ metadata.value }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.metadata.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.metadata.errors|first }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.metadata.help_text }}</small>
+                                </div>
+                            </div>
+
+                            {% if is_editing and enrollment_obj.metadata.all %}
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card card-outline card-info">
+                                        <div class="card-header">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-tags mr-2"></i>Current Metadata
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for metadata in enrollment_obj.metadata.all %}
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="info-box bg-info">
+                                                        <span class="info-box-icon"><i class="fas fa-tag"></i></span>
+                                                        <div class="info-box-content">
+                                                            <span class="info-box-text">{{ metadata.key }}</span>
+                                                            <span class="info-box-number">{{ metadata.value }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.students.add_enrollment or perms.students.change_enrollment %}
+                                <button type="submit" class="btn btn-success" id="save_enrollment_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        <i class="fas fa-save mr-1"></i>
+                                        {% if is_editing %}Update Enrollment{% else %}Save Enrollment{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary float-right" onclick="history.back()">
+                                <i class="fas fa-arrow-left mr-1"></i>Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block js_files %}
+<script src="{% static 'admin/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2bs4').select2({
+        theme: 'bootstrap4',
+        placeholder: function() {
+            const id = $(this).attr('id');
+            if (id === 'id_student') return "Select a student...";
+            if (id === 'id_course') return "Select a course...";
+            if (id === 'id_metadata') return "Select metadata...";
+            return "Select...";
+        },
+        allowClear: true
+    });
+
+    // Check if we're in edit mode
+    const isEditMode = {% if is_editing %}true{% else %}false{% endif %};
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_student: { 
+                required: true
+            },
+            id_course: {
+                required: true
+            },
+            id_score: {
+                required: false,
+                min: 0,
+                max: 100,
+                number: true
+            },
+            id_completion_date: {
+                required: false,
+                date: true
+            }
+        };
+        
+        globalFormValidation('#enrollment-form', validationRules);
+    }
+
+    // Score to grade mapping
+    const scoreToGrade = {
+        97: 'A+', 93: 'A', 90: 'A-',
+        87: 'B+', 83: 'B', 80: 'B-',
+        77: 'C+', 73: 'C', 70: 'C-',
+        67: 'D+', 60: 'D', 0: 'F'
+    };
+
+    // Function to suggest grade based on score
+    function suggestGrade(score) {
+        if (!score || score === '') return '';
+        
+        const numScore = parseFloat(score);
+        if (isNaN(numScore)) return '';
+        
+        for (const [threshold, grade] of Object.entries(scoreToGrade).sort((a, b) => b[0] - a[0])) {
+            if (numScore >= parseFloat(threshold)) {
+                return grade;
+            }
+        }
+        return 'F';
+    }
+
+    // Handle score input changes
+    $('#id_score').on('input blur', function() {
+        const score = $(this).val();
+        const suggestedGrade = suggestGrade(score);
+        
+        if (suggestedGrade && score) {
+            $('#suggestedGrade').text(suggestedGrade).removeClass().addClass('badge badge-primary');
+            $('#gradePreview').removeClass('d-none');
+            
+            // Auto-fill grade if empty
+            if (!$('#id_grade').val()) {
+                $('#id_grade').val(suggestedGrade);
+            }
+        } else {
+            $('#gradePreview').addClass('d-none');
+        }
+        
+        // Validate score range
+        if (score) {
+            const numScore = parseFloat(score);
+            if (numScore < 0 || numScore > 100) {
+                $(this).addClass('is-invalid');
+                if (!$(this).siblings('.invalid-feedback').length) {
+                    $(this).after('<div class="invalid-feedback">Score must be between 0 and 100.</div>');
+                }
+            } else {
+                $(this).removeClass('is-invalid');
+                $(this).siblings('.invalid-feedback').remove();
+            }
+        }
+    });
+
+    // Handle grade selection changes
+    $('#id_grade').on('change', function() {
+        const selectedGrade = $(this).val();
+        if (selectedGrade) {
+            $('#gradePreview').addClass('d-none');
+        }
+    });
+
+    // Check for duplicate enrollment
+    $('#id_student, #id_course').on('change', function() {
+        const studentId = $('#id_student').val();
+        const courseId = $('#id_course').val();
+        
+        if (studentId && courseId && !isEditMode) {
+            // Check if this student is already enrolled in this course
+            $.ajax({
+                url: "{% url 'students:check-enrollment' %}",
+                method: 'GET',
+                data: {
+                    student: studentId,
+                    course: courseId,
+                    {% if is_editing %}exclude: {{ enrollment_obj.id }}{% endif %}
+                },
+                success: function(response) {
+                    if (response.exists) {
+                        // Show warning but don't prevent submission
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Duplicate Enrollment',
+                            text: 'This student is already enrolled in this course. Are you sure you want to continue?',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Continue',
+                            cancelButtonText: 'Cancel'
+                        }).then((result) => {
+                            if (!result.isConfirmed) {
+                                $('#id_course').val('').trigger('change');
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    });
+
+    let isSubmitting = false;
+
+    $('#enrollment-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = {% if is_editing %}"{% url 'students:enrollment-edit' enrollment_obj.pk %}"{% else %}"{% url 'students:enrollment-add' %}"{% endif %};
+            const redirectUrl = "{% url 'students:enrollments' %}";
+            
+            // Show loading state
+            $('#save_enrollment_button').prop('disabled', true);
+            $('#save_enrollment_button .spinner-border').removeClass('d-none');
+            $('#save_enrollment_button .btn-text').html(
+                '<i class="fas fa-spinner fa-spin mr-1"></i>' + 
+                (isEditMode ? 'Updating...' : 'Saving...')
+            );
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "enrollment-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_enrollment_button').prop('disabled', false);
+                    $('#save_enrollment_button .spinner-border').addClass('d-none');
+                    $('#save_enrollment_button .btn-text').html(
+                        '<i class="fas fa-save mr-1"></i>' + 
+                        (isEditMode ? 'Update Enrollment' : 'Save Enrollment')
+                    );
+                }
+            });
+        }
+    });
+
+    // Date picker initialization (if using a date picker)
+    $('#id_completion_date').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        minYear: 1901,
+        maxYear: parseInt(moment().format('YYYY'), 10),
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    // Initialize grade preview if score exists
+    {% if is_editing and enrollment_obj.score %}
+    const initialScore = {{ enrollment_obj.score }};
+    const suggestedGrade = suggestGrade(initialScore);
+    if (suggestedGrade) {
+        $('#suggestedGrade').text(suggestedGrade).removeClass().addClass('badge badge-primary');
+        $('#gradePreview').removeClass('d-none');
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

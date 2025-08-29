@@ -1,0 +1,19 @@
+    <footer class="main-footer">
+    <strong>Copyright &copy; <span class="year"></span></strong>
+    All rights reserved.
+    <div class="float-right d-none d-sm-inline-block">
+        <b>Version</b> 1.0
+    </div>
+</footer>
+
+
+<script>
+
+    function setYear() {
+        const year = document.querySelector('.year')
+        const date = new Date()
+        year.innerText = date.getFullYear()
+    }
+    // console.log(date.getFullYear())
+    window.onload = setYear()
+</script>

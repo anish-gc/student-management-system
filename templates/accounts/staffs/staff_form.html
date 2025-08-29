@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} Staff{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'admin/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if is_editing %}Edit{% else %}Add{% endif %} Staff</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:staffs' %}">Staff List</a>
+                    </li>
+                    <li class="breadcrumb-item active">{% if is_editing %}Edit{% else %}Add{% endif %} Staff</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% if is_editing and staff_obj %}
+                <div class="staff-info-card mb-4">
+                    <div class="card card-outline card-info">
+                        <div class="card-header">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-tie mr-2"></i>
+                                Staff Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Username:</strong> {{ staff_obj.username }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Email:</strong> {{ staff_obj.email }}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Status:</strong> 
+                                    <span class="badge badge-{% if staff_obj.is_active %}success{% else %}danger{% endif %}">
+                                        {% if staff_obj.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <strong>Joined:</strong> {{ staff_obj.date_joined|date:"M d, Y" }}
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <strong>Last Login:</strong> 
+                                    {% if staff_obj.last_login %}{{ staff_obj.last_login|date:"M d, Y H:i" }}{% else %}Never{% endif %}
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <strong>Groups:</strong> {{ staff_obj.groups.count }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user-tie mr-2"></i>
+                            {% if is_editing %}
+                                Edit Staff Information
+                            {% else %}
+                                Staff Information
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="staff-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name == 'groups' %}
+                                        <div class="form-group col-md-6">
+                                            <label for="id_groups" class="{% if field.field.required %}required{% endif %}">
+                                                <i class="fas fa-users mr-1"></i>Assign Groups
+                                            </label>
+                                            <select name="groups" class="form-control select2bs4" id="id_groups" multiple>
+                                                <option value="">Select groups...</option>
+                                                {% for group in form.groups.field.queryset %}
+                                                    <option value="{{ group.id }}" 
+                                                        {% if is_editing and group in form.instance.groups.all %}selected{% endif %}>
+                                                        {{ group.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'password' and is_editing %}
+                                        {# Skip password field in edit mode since we have a separate section #}
+                                    {% elif field.name == 'confirm_password' and is_editing %}
+                                        {# Skip confirm password field in edit mode #}
+                                    {% elif field.field.widget.input_type == "checkbox" %}
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check">
+                                                {{ field }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                            </div>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-group col-md-6 {% if field.name == 'password' or field.name == 'confirm_password' %}password-field{% endif %}">
+                                            <label for="{{ field.id_for_label }}" 
+                                                   class="{% if field.field.required %}required{% endif %}">
+                                                {% if field.name == 'username' %}<i class="fas fa-user mr-1"></i>{% endif %}
+                                                {% if field.name == 'email' %}<i class="fas fa-envelope mr-1"></i>{% endif %}
+                                                {% if field.name == 'first_name' %}<i class="fas fa-signature mr-1"></i>{% endif %}
+                                                {% if field.name == 'last_name' %}<i class="fas fa-signature mr-1"></i>{% endif %}
+                                                {% if field.name == 'password' %}<i class="fas fa-lock mr-1"></i>{% endif %}
+                                                {% if field.name == 'confirm_password' %}<i class="fas fa-lock mr-1"></i>{% endif %}
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.name == 'password' or field.name == 'confirm_password' %}
+                                                <span class="toggle-password" onclick="togglePassword('{{ field.id_for_label }}')">
+                                                    <i class="fas fa-eye"></i>
+                                                </span>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            {% if is_editing %}
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card card-outline card-warning">
+                                        <div class="card-header">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-key mr-2"></i>Change Password
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group password-field">
+                                                        <label for="id_password" class="required">
+                                                            <i class="fas fa-lock mr-1"></i>New Password
+                                                        </label>
+                                                        <input type="password" name="password" id="id_password" 
+                                                               class="form-control" placeholder="Enter new password">
+                                                        <span class="toggle-password" onclick="togglePassword('id_password')">
+                                                            <i class="fas fa-eye"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group password-field">
+                                                        <label for="id_confirm_password" class="required">
+                                                            <i class="fas fa-lock mr-1"></i>Confirm New Password
+                                                        </label>
+                                                        <input type="password" name="confirm_password" id="id_confirm_password" 
+                                                               class="form-control" placeholder="Confirm new password">
+                                                        <span class="toggle-password" onclick="togglePassword('id_confirm_password')">
+                                                            <i class="fas fa-eye"></i>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                Leave password fields blank to keep current password.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.auth.add_user or perms.auth.change_user %}
+                                <button type="submit" class="btn btn-success" id="save_staff_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        <i class="fas fa-save mr-1"></i>
+                                        {% if is_editing %}Update Staff{% else %}Save Staff{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <a href="{% url 'accounts:staffs' %}" class="btn btn-secondary">
+                                <i class="fas fa-times mr-1"></i>Cancel
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary float-right" onclick="history.back()">
+                                <i class="fas fa-arrow-left mr-1"></i>Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js_files %}
+<script src="{% static 'admin/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = field.nextElementSibling.querySelector('i');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2bs4').select2({
+        theme: 'bootstrap4',
+        placeholder: "Select groups...",
+        allowClear: true
+    });
+
+    // Check if we're in edit mode
+    const isEditMode = {% if is_editing %}true{% else %}false{% endif %};
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_username: { 
+                required: true,
+                minlength: 3,
+                maxlength: 150
+            },
+            id_email: {
+                required: true,
+                email: true
+            },
+            id_first_name: {
+                required: true
+            },
+            id_last_name: {
+                required: true
+            }
+        };
+        
+        // Only require password for add mode
+        if (!isEditMode) {
+            validationRules.id_password = { 
+                required: true,
+                minlength: 8
+            };
+            validationRules.id_confirm_password = {
+                required: true,
+                equalTo: "#id_password"
+            };
+        }
+        
+        globalFormValidation('#staff-form', validationRules);
+    }
+
+    let isSubmitting = false;
+
+    $('#staff-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = {% if is_editing %}"{% url 'accounts:staff-edit' staff_obj.pk %}"{% else %}"{% url 'accounts:staff-add' %}"{% endif %};
+            const redirectUrl = "{% url 'accounts:staffs' %}";
+            
+            // Show loading state
+            $('#save_staff_button').prop('disabled', true);
+            $('#save_staff_button .spinner-border').removeClass('d-none');
+            $('#save_staff_button .btn-text').html(
+                '<i class="fas fa-spinner fa-spin mr-1"></i>' + 
+                (isEditMode ? 'Updating...' : 'Saving...')
+            );
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "staff-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_staff_button').prop('disabled', false);
+                    $('#save_staff_button .spinner-border').addClass('d-none');
+                    $('#save_staff_button .btn-text').html(
+                        '<i class="fas fa-save mr-1"></i>' + 
+                        (isEditMode ? 'Update Staff' : 'Save Staff')
+                    );
+                }
+            });
+        }
+    });
+
+    // Password strength indicator for add mode
+    if (!isEditMode) {
+        $('#id_password').on('keyup', function() {
+            const password = $(this).val();
+            const strength = checkPasswordStrength(password);
+            // You can add password strength indicator logic here
+        });
+    }
+});
+
+function checkPasswordStrength(password) {
+    // Add password strength checking logic here
+    return 'medium'; // weak, medium, strong
+}
+</script>
+{% endblock %}

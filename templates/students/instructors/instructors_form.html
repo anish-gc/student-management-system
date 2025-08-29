@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} Instructor{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'admin/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if is_editing %}Edit{% else %}Add{% endif %} Instructor</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'students:instructors' %}">Instructor List</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if is_editing %}Edit{% else %}Add{% endif %} Instructor
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% if is_editing %}
+                <div class="instructor-info-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="card-title mb-1">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i>
+                                Prof. {{ instructor_obj.full_name }}
+                            </h4>
+                            <p class="mb-0">
+                                <i class="fas fa-envelope mr-2"></i>{{ instructor_obj.email }}
+                                {% if instructor_obj.phone_number %}
+                                <span class="ml-3">
+                                    <i class="fas fa-phone mr-2"></i>{{ instructor_obj.phone_number }}
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <span class="badge badge-light p-2">
+                                {% if instructor_obj.is_active %}
+                                    <i class="fa fa-check text-success"></i> Active
+                                {% else %}
+                                    <i class="fa fa-times text-danger"></i> Inactive
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user-tie mr-2"></i>
+                            {% if is_editing %}
+                                Edit Instructor Information
+                            {% else %}
+                                Instructor Information
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="instructor-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name == 'metadata' %}
+                                        <div class="form-group col-md-6">
+                                            <label for="id_metadata" class="{% if field.field.required %}required{% endif %}">
+                                                <i class="fas fa-tags mr-1"></i>Assign Metadata
+                                            </label>
+                                            <select name="metadata" class="form-control select2bs4" id="id_metadata" multiple>
+                                                {% for metadata in form.metadata.field.queryset %}
+                                                    <option value="{{ metadata.id }}" 
+                                                        {% if is_editing and metadata in form.instance.metadata.all %}selected{% endif %}>
+                                                        {{ metadata.key }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.name == 'courses' %}
+                                        <div class="form-group col-md-6">
+                                            <label for="id_courses" class="{% if field.field.required %}required{% endif %}">
+                                                <i class="fas fa-book mr-1"></i>Assign Courses
+                                            </label>
+                                            <select name="courses" class="form-control select2bs4" id="id_courses" multiple>
+                                                {% for course in form.courses.field.queryset %}
+                                                    <option value="{{ course.id }}" 
+                                                        {% if is_editing and course in form.instance.courses.all %}selected{% endif %}>
+                                                        {{ course.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.field.widget.input_type == "checkbox" %}
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check">
+                                                {{ field }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                            </div>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-group col-md-6">
+                                            <label for="{{ field.id_for_label }}" 
+                                                   class="{% if field.field.required %}required{% endif %}">
+                                                {% if field.name == 'first_name' %}<i class="fas fa-user mr-1"></i>{% endif %}
+                                                {% if field.name == 'last_name' %}<i class="fas fa-user mr-1"></i>{% endif %}
+                                                {% if field.name == 'email' %}<i class="fas fa-envelope mr-1"></i>{% endif %}
+                                                {% if field.name == 'phone_number' %}<i class="fas fa-phone mr-1"></i>{% endif %}
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            {% if is_editing and instructor_obj.courses.all %}
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card card-outline card-primary">
+                                        <div class="card-header">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-graduation-cap mr-2"></i>Current Courses
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for course in instructor_obj.courses.all %}
+                                                <div class="col-md-4 mb-2">
+                                                    <div class="info-box bg-info">
+                                                        <span class="info-box-icon"><i class="fas fa-book"></i></span>
+                                                        <div class="info-box-content">
+                                                            <span class="info-box-text">{{ course.name }}</span>
+                                                            <span class="info-box-number">
+                                                                {% if course.code %}{{ course.code }}{% endif %}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.students.add_instructor or perms.students.change_instructor %}
+                                <button type="submit" class="btn btn-success" id="save_instructor_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        <i class="fas fa-save mr-1"></i>
+                                        {% if is_editing %}Update Instructor{% else %}Save Instructor{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary float-right" onclick="history.back()">
+                                <i class="fas fa-arrow-left mr-1"></i>Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js_files %}
+<script src="{% static 'admin/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2bs4').select2({
+        theme: 'bootstrap4',
+        placeholder: function() {
+            return $(this).attr('id') === 'id_metadata' ? "Select metadata..." : "Select courses...";
+        },
+        allowClear: true
+    });
+
+    // Check if we're in edit mode
+    const isEditMode = {% if is_editing %}true{% else %}false{% endif %};
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_first_name: { 
+                required: true,
+                minlength: 2,
+                maxlength: 50
+            },
+            id_last_name: {
+                required: true,
+                minlength: 2,
+                maxlength: 50
+            },
+            id_email: {
+                required: true,
+                email: true
+            },
+            id_phone_number: {
+                required: false,
+                minlength: 10
+            }
+        };
+        
+        globalFormValidation('#instructor-form', validationRules);
+    }
+
+    let isSubmitting = false;
+
+    $('#instructor-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = {% if is_editing %}"{% url 'students:instructor-edit' instructor_obj.pk %}"{% else %}"{% url 'students:instructor-add' %}"{% endif %};
+            const redirectUrl = "{% url 'students:instructors' %}";
+            
+            // Show loading state
+            $('#save_instructor_button').prop('disabled', true);
+            $('#save_instructor_button .spinner-border').removeClass('d-none');
+            $('#save_instructor_button .btn-text').html(
+                '<i class="fas fa-spinner fa-spin mr-1"></i>' + 
+                (isEditMode ? 'Updating...' : 'Saving...')
+            );
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "instructor-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_instructor_button').prop('disabled', false);
+                    $('#save_instructor_button .spinner-border').addClass('d-none');
+                    $('#save_instructor_button .btn-text').html(
+                        '<i class="fas fa-save mr-1"></i>' + 
+                        (isEditMode ? 'Update Instructor' : 'Save Instructor')
+                    );
+                }
+            });
+        }
+    });
+
+
+
+    // Email validation on blur
+    $('#id_email').on('blur', function() {
+        const email = $(this).val();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email && !emailRegex.test(email)) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Please enter a valid email address.</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').remove();
+        }
+    });
+
+    // Real-time name validation
+    $('#id_first_name, #id_last_name').on('input', function() {
+        const value = $(this).val();
+        const nameRegex = /^[a-zA-Z\s\'-]+$/;
+        
+        if (value && !nameRegex.test(value)) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Name can only contain letters, spaces, hyphens, and apostrophes.</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').remove();
+        }
+    });
+});
+</script>
+{% endblock %}

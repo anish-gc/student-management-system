@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Student Management System | Dashboard
+{% endblock title %}
+
+{% block content %}
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Dashboard</h1>
+            </div><!-- /.col -->
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                </ol>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Small boxes (Stat box) -->
+        <div class="row">
+            <!-- Students Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ stats.total_students|default:0 }}</h3>
+                        <p>Total Students</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <a href="{% url 'students:students' %}" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Students Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{ stats.active_students|default:0 }}</h3>
+                        <p>Active Students</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <a href="{% url 'students:students' %}?active_status=true" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Courses Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ stats.total_courses|default:0 }}</h3>
+                        <p>Total Courses</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <a href="{% url 'students:courses' %}" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Courses Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>{{ stats.active_courses|default:0 }}</h3>
+                        <p>Active Courses</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <a href="{% url 'students:courses' %}?active_status=true" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Enrollments Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-secondary">
+                    <div class="inner">
+                        <h3>{{ stats.total_enrollments|default:0 }}</h3>
+                        <p>Total Enrollments</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <a href="{% url 'students:enrollments' %}" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Enrollments Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-purple">
+                    <div class="inner">
+                        <h3>{{ stats.active_enrollments|default:0 }}</h3>
+                        <p>Active Enrollments</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <a href="{% url 'students:enrollments' %}?active_status=true" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Staff/Instructors Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3>{{ stats.total_staff|default:0 }}</h3>
+                        <p>Total Staff</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <a href="{% url 'accounts:staffs' %}" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Staff Card -->
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-orange">
+                    <div class="inner">
+                        <h3>{{ stats.active_staff|default:0 }}</h3>
+                        <p>Active Staff</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <a href="{% url 'accounts:staffs' %}?is_active=true" class="small-box-footer">
+                        More info <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Statistics Row -->
+
+
+        <div class="col-md-12">
+            <!-- Quick Actions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="{% url 'students:student-add' %}" class="btn btn-primary btn-block mb-2">
+                                <i class="fas fa-plus"></i> Add Student
+                            </a>
+                            <a href="{% url 'students:course-add' %}" class="btn btn-warning btn-block mb-2">
+                                <i class="fas fa-plus"></i> Add Course
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'students:enrollment-add' %}" class="btn btn-secondary btn-block mb-2">
+                                <i class="fas fa-plus"></i> New Enrollment
+                            </a>
+                            <a href="{% url 'accounts:staff-add' %}" class="btn btn-danger btn-block mb-2">
+                                <i class="fas fa-plus"></i> Add Staff
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</section>
+{% endblock %}

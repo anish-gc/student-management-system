@@ -1,0 +1,119 @@
+/* 
+ css variable
+*/
+
+:root {
+    --primary-color: #0258d8;
+    --danger-color: red;
+}
+
+.error{
+    color: var(--danger-color);
+}
+/* Zoom effect on hover */
+.zoom:hover {
+    -ms-transform: scale(1.5); /* IE 9 */
+    -webkit-transform: scale(1.5); /* Safari 3-8 */
+    transform: scale(2.5); 
+}
+
+/* Invalid input styling */
+.invalid {
+    border: 1px solid var(--danger-color);
+}
+
+/* DataTable cell padding */
+
+table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
+    padding: 4px 10px;
+}
+
+/* DataTable heading styling */
+table.dataTable > thead > tr > th, table.dataTable > thead > tr > td,
+table > thead > tr > th, table.dataTable > thead > tr > td {
+    padding: 5px;
+    padding-right: 5px;
+    border-bottom: 1px solid var(--primary-color);
+}
+table.dataTable thead , 
+table thead{
+    background-color: var(--primary-color);
+    color:white
+}
+
+/* Empty footer and last child table border */
+div.dt-container.dt-empty-footer tbody > tr:last-child > * {
+    border-bottom: 1px solid var(--primary-color);
+}
+
+/* custom table thead styling */
+.table th {
+    font-size: 18px;
+    font-weight: bold;
+    text-wrap: nowrap;
+}
+/* custom table column styling */
+.table td{
+    font-size:16px;
+}
+
+/* AdminLTE table borders */.table-bordered td, .table-bordered th {
+    border: 1px solid var(--primary-color);
+    border-top-color:var(--primary-color);
+    border-bottom-color:var(--primary-color);
+    border-top-style: solid;
+    border-top-width: 1px;
+}
+
+/* Action button styling */
+.action-btn{
+  padding: 3px 5px 4px 8px;
+  margin: 2px;
+}
+
+.btn-add {
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    box-shadow: none;
+}
+
+.btn-add:hover {
+    color: #fff;
+}
+
+/* .form-control:focus{
+    border-color: #1c0ee9;
+
+} */
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+    background-color: rgba( 255, 128, 150,0.30)
+  }
+
+.hidden {
+    display: none;
+}
+
+
+.card .primary-card-header {
+    background-color: var(--primary-color) !important;
+}
+
+.text-md {
+    font-size: 1rem !important;
+    color: black;
+}
+
+.text-xl {
+    font-size: 1.2rem !important;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+
+.select2 {
+ width: 100%!important; /* overrides computed width, 100px in your demo */
+}

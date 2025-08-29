@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Permission Denied
+{% endblock title %}
+
+{% load static %}
+
+{% block content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="error-page text-center">
+                    <!-- Animated Icon -->
+                    <div class="error-icon mb-4">
+                        <div class="icon-container">
+                            <i class="fas fa-ban text-danger"></i>
+                            <div class="pulse-ring"></div>
+                        </div>
+                    </div>
+
+                    <!-- Error Code -->
+                    <h1 class="display-1 text-danger font-weight-bold mb-3">403</h1>
+
+                    <!-- Main Message -->
+                    <h2 class="h3 text-gray-800 mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning mr-2"></i>
+                        Access Forbidden
+                    </h2>
+
+                    <!-- Description -->
+                    <p class="lead text-muted mb-4">
+                        Sorry, you don't have permission to access this page.
+                        This area is restricted to authorized personnel only.
+                    </p>
+
+                    <!-- Additional Help -->
+                    <div class="error-details mb-4">
+                        <p class="text-sm text-muted">
+                            If you believe this is a mistake, please contact your administrator
+                            or system support for assistance.
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="error-actions">
+                        <div class="row justify-content-center">
+                            <div class="col-auto mb-2">
+                                <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>
+                                    Return to Dashboard
+                                </a>
+                            </div>
+
+                            <div class="col-auto mb-2">
+                                <button onclick="history.back()" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Go Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

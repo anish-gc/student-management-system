@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Enrollment List
+{% endblock %}
+
+{% load static %}
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Student Enrollments</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Enrollment List</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Statistics Cards -->
+        <div class="row mb-3">
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ stats.total_enrollments }}</h3>
+                        <p>Total Enrollments</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{ stats.active_enrollments }}</h3>
+                        <p>Active Enrollments</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ stats.in_progress_enrollments }}</h3>
+                        <p>In Progress</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>{{ stats.completed_enrollments }}</h3>
+                        <p>Completed</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row justify-content-between align-items-center">
+                            <!-- Filter Form Section -->
+                            <div class="col-md-8 col-sm-12">
+                                <form method="get" action="" id="filterForm">
+                                    <div class="row align-items-center">
+                                        <!-- Search Input -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <input type="text" class="form-control form-control-sm" name="search" 
+                                                   placeholder="Search..." 
+                                                   value="{{ current_filters.search }}"
+                                                   data-toggle="tooltip" title="Search by student, course, or grade">
+                                        </div>
+                                        
+                                        <!-- Student Dropdown -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="student" id="studentFilter">
+                                                <option value="">All Students</option>
+                                                {% for student in student_list %}
+                                                <option value="{{ student.id }}" 
+                                                    {% if current_filters.student == student.id|stringformat:"s" %}selected{% endif %}>
+                                                    {{ student.full_name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Course Dropdown -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="course" id="courseFilter">
+                                                <option value="">All Courses</option>
+                                                {% for course in course_list %}
+                                                <option value="{{ course.id }}" 
+                                                    {% if current_filters.course == course.id|stringformat:"s" %}selected{% endif %}>
+                                                    {{ course.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Grade Dropdown -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="grade" id="gradeFilter">
+                                                <option value="">All Grades</option>
+                                                {% for grade_value, grade_display in grade_choices %}
+                                                <option value="{{ grade_value }}" 
+                                                    {% if current_filters.grade == grade_value %}selected{% endif %}>
+                                                    {{ grade_display }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Status Dropdown -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="active_status" id="statusFilter">
+                                                <option value="">All Status</option>
+                                                <option value="True" 
+                                                    {% if current_filters.active_status == "True" %}selected{% endif %}>
+                                                    Active
+                                                </option>
+                                                <option value="False" 
+                                                    {% if current_filters.active_status == "False" %}selected{% endif %}>
+                                                    Inactive
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Completion Status -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="completion_status" id="completionFilter">
+                                                <option value="">All</option>
+                                                <option value="completed" 
+                                                    {% if current_filters.completion_status == "completed" %}selected{% endif %}>
+                                                    Completed
+                                                </option>
+                                                <option value="in_progress" 
+                                                    {% if current_filters.completion_status == "in_progress" %}selected{% endif %}>
+                                                    In Progress
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Metadata Dropdown -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <select class="form-control form-control-sm" name="metadata" id="metadataFilter">
+                                                <option value="">All Metadata</option>
+                                                {% for metadata in metadata_list %}
+                                                <option value="{{ metadata.name }}" 
+                                                    {% if current_filters.metadata == metadata.name %}selected{% endif %}>
+                                                    {{ metadata.key|title }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <!-- Filter and Reset Buttons -->
+                                        <div class="col-md-2 col-sm-6 mb-2">
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="submit" class="btn btn-primary btn-sm" 
+                                                    data-toggle="tooltip" title="Apply filters">
+                                                    <i class="fas fa-filter"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                    onclick="clearFilters()" data-toggle="tooltip" title="Clear filters">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Add Enrollment Button -->
+                            {% if perms.students.add_enrollment %}
+                            <div class="col-md-4 col-sm-12 text-right">
+                                <a href="{% url 'students:enrollment-add' %}" class="btn btn-success" 
+                                   data-toggle="tooltip" data-placement="left" title="Add New Enrollment">
+                                    <i class="fa fa-plus"></i> Add Enrollment
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Results Info -->
+                        {% if is_paginated %}
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                                    of {{ paginator.count }} enrollments
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-sm" id="enrollmentTable">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="5%">S.N</th>
+                                        <th>Student</th>
+                                        <th>Course</th>
+                                        <th width="8%">Grade</th>
+                                        <th width="8%">Score</th>
+                                        <th width="10%">Grade Points</th>
+                                        <th>Completion Date</th>
+                                        <th>Active</th>
+                                        <th>Metadata</th>
+                                        {% if perms.students.change_enrollment %}
+                                        <th width="12%">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in queryset %}
+                                    <tr data-enrollment-id="{{ enrollment.id }}">
+                                        <td>
+                                            {% if is_paginated %}
+                                                {{ page_obj.start_index|add:forloop.counter0 }}
+                                            {% else %}
+                                                {{ forloop.counter }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ enrollment.student.full_name }}</strong>
+                                            <br><small class="text-muted">{{ enrollment.student.student_id|default:"-" }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ enrollment.course.name }}</strong>
+                                            <br><small class="text-muted">{{ enrollment.course.course_code }}</small>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if enrollment.grade %}
+                                                <span class="badge 
+                                                    {% if enrollment.grade == 'A+' or enrollment.grade == 'A' %}badge-success
+                                                    {% elif enrollment.grade == 'A-' or enrollment.grade == 'B+' or enrollment.grade == 'B' %}badge-primary
+                                                    {% elif enrollment.grade == 'B-' or enrollment.grade == 'C+' or enrollment.grade == 'C' %}badge-info
+                                                    {% elif enrollment.grade == 'C-' or enrollment.grade == 'D+' or enrollment.grade == 'D' %}badge-warning
+                                                    {% elif enrollment.grade == 'F' %}badge-danger
+                                                    {% else %}badge-secondary
+                                                    {% endif %}">
+                                                    {{ enrollment.grade }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-light">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if enrollment.score %}
+                                                <strong>{{ enrollment.score }}%</strong>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if enrollment.grade_points %}
+                                                <span class="badge badge-info">{{ enrollment.grade_points }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                      
+                                        <td class="text-center">
+                                            {% if enrollment.completion_date %}
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                                <br><small>{{ enrollment.completion_date|date:"M d, Y" }}</small>
+                                            {% else %}
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-clock"></i>
+                                                </span>
+                                                <br><small>In Progress</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="status-cell text-center">
+                                            {% if enrollment.is_active %}
+                                                <span class="badge badge-success">
+                                                    <i class="fa fa-check"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fa fa-times"></i> Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="metadata-cell">
+                                            {% for metadata in enrollment.metadata.all %}
+                                                <span class="badge badge-info">{{ metadata.key|title }}</span>
+                                                {% if not forloop.last %} {% endif %}
+                                            {% empty %}
+                                                <span class="badge badge-secondary">-</span>
+                                            {% endfor %}
+                                        </td>
+                                       
+                                        {% if perms.students.change_enrollment %}
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {% if perms.students.change_enrollment %}
+                                                <a href="{% url 'students:enrollment-edit' enrollment.id %}" 
+                                                   class="btn btn-info btn-sm" data-toggle="tooltip" title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                                {% endif %}
+                                                {% if perms.students.delete_enrollment %}
+                                                <button class="btn btn-danger btn-sm" 
+                                                        onclick="confirmDelete(event, 'enrollment', '{{ enrollment.id }}', '{{ enrollment.student.full_name }} - {{ enrollment.course.course_code }}')"
+                                                        data-toggle="tooltip" title="Delete Enrollment">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="{% if perms.students.change_enrollment %}10{% else %}9{% endif %}" 
+                                            class="text-center text-muted py-4">
+                                            <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i><br>
+                                            No enrollments found.
+                                            {% if current_filters.search or current_filters.student or current_filters.course or current_filters.grade or current_filters.active_status or current_filters.completion_status or current_filters.metadata %}
+                                            <br><small>Try adjusting your filters.</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <nav aria-label="Enrollment pagination">
+                                    <ul class="pagination justify-content-center">
+                                        {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        
+                                        {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                        {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                                
+                                <!-- Page size selector -->
+                                <div class="text-center mt-2">
+                                    <small class="text-muted">
+                                        Items per page: 
+                                        <select class="form-control form-control-sm d-inline-block w-auto" 
+                                                name="page_size" id="pageSizeSelect">
+                                            <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                                            <option value="15" {% if request.GET.page_size == "15" or not request.GET.page_size %}selected{% endif %}>15</option>
+                                            <option value="25" {% if request.GET.page_size == "25" %}selected{% endif %}>25</option>
+                                            <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                                        </select>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block js_files %}
+<!-- Pass data to JavaScript -->
+<script>
+    // Make student data available to JavaScript
+    window.studentData = [
+        {% for student in student_list %}
+        {
+            value: "{{ student.id }}",
+            text: "{{ student.full_name }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Make course data available to JavaScript
+    window.courseData = [
+        {% for course in course_list %}
+        {
+            value: "{{ course.id }}",
+            text: "{{ course.name }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Make metadata data available to JavaScript
+    window.metadataData = [
+        {% for metadata in metadata_list %}
+        {
+            value: "{{ metadata.name }}",
+            text: "{{ metadata.key|title }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+</script>
+
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Page size change handler
+    $('#pageSizeSelect').change(function() {
+        let url = new URL(window.location);
+        url.searchParams.set('page_size', this.value);
+        url.searchParams.delete('page'); // Reset to page 1
+        window.location.href = url.toString();
+    });
+    
+    // Auto-submit form on filter change (optional)
+    $('#studentFilter, #courseFilter, #gradeFilter, #statusFilter, #completionFilter, #metadataFilter').change(function() {
+        // Uncomment the line below to auto-submit on filter change
+        // $('#filterForm').submit();
+    });
+    
+    // Search input enter key handler
+    $('input[name="search"]').keypress(function(e) {
+        if (e.which == 13) { // Enter key
+            $('#filterForm').submit();
+        }
+    });
+});
+
+/**
+ * Clear all filters and reload the page
+ */
+function clearFilters() {
+    // Reset form
+    document.getElementById('filterForm').reset();
+    
+    // Redirect to the same page without query parameters
+    window.location.href = window.location.pathname;
+}
+</script>
+{% endblock %}

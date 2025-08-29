@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} Student{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'admin/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if is_editing %}Edit{% else %}Add{% endif %} Student</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'students:students' %}">Student List</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if is_editing %}Edit{% else %}Add{% endif %} Student
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            {% if is_editing %}
+                                Edit Student: {{ student_obj.full_name }}
+                            {% else %}
+                                Student Information
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="student-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name == 'metadata' %}
+                                        <div class="form-group col-md-6">
+                                            <label for="id_metadata" class="{% if field.field.required %}required{% endif %}">
+                                                Assign Metadata
+                                            </label>
+                                            <select name="metadata" class="form-control select2bs4" id="id_metadata" multiple>
+                                                {% for metadata in form.metadata.field.queryset %}
+                                                    <option value="{{ metadata.id }}" 
+                                                        {% if is_editing and metadata in form.instance.metadata.all %}selected{% endif %}>
+                                                        {{ metadata.key }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.field.widget.input_type == "checkbox" %}
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check">
+                                                {{ field }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                            </div>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-group col-md-6">
+                                            <label for="{{ field.id_for_label }}" 
+                                                   class="{% if field.field.required %}required{% endif %}">
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.students.add_student or perms.students.change_student %}
+                                <button type="submit" class="btn btn-success" id="save_student_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        {% if is_editing %}Update{% else %}Save{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary float-right" onclick="history.back()">
+                                Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js_files %}
+<script src="{% static 'admin/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2bs4').select2({
+        theme: 'bootstrap4',
+        placeholder: "Select metadata...",
+        allowClear: true
+    });
+
+    // Check if we're in edit mode
+    const isEditMode = {% if is_editing %}true{% else %}false{% endif %};
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_first_name: { 
+                required: true,
+                minlength: 2,
+                maxlength: 50
+            },
+            id_last_name: {
+                required: true,
+                minlength: 2,
+                maxlength: 50
+            },
+            id_email: {
+                required: true,
+                email: true
+            },
+          
+            id_date_of_birth: {
+                required: true,
+                date: true
+            }
+        };
+        
+        globalFormValidation('#student-form', validationRules);
+    }
+
+    let isSubmitting = false;
+
+    $('#student-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = {% if is_editing %}"{% url 'students:student-edit' student_obj.pk %}"{% else %}"{% url 'students:student-add' %}"{% endif %};
+            const redirectUrl = "{% url 'students:students' %}";
+            
+            // Show loading state
+            $('#save_student_button').prop('disabled', true);
+            $('#save_student_button .spinner-border').removeClass('d-none');
+            $('#save_student_button .btn-text').text(isEditMode ? 'Updating...' : 'Saving...');
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "student-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_student_button').prop('disabled', false);
+                    $('#save_student_button .spinner-border').addClass('d-none');
+                    $('#save_student_button .btn-text').text(isEditMode ? 'Update' : 'Save');
+                }
+            });
+        }
+    });
+
+   
+    // Date of birth validation
+    $('#id_date_of_birth').on('change', function() {
+        const selectedDate = new Date($(this).val());
+        const today = new Date();
+        
+        if (selectedDate > today) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Date of birth cannot be in the future.</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').remove();
+        }
+    });
+});
+</script>
+{% endblock %}

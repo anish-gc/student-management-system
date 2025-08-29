@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} Course{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'admin/plugins/select2/css/select2.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+
+{% endblock %}
+
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>{% if is_editing %}Edit{% else %}Add{% endif %} Course</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'students:courses' %}">Course List</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {% if is_editing %}Edit{% else %}Add{% endif %} Course
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                {% if is_editing %}
+                <div class="course-info-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="card-title mb-1">
+                                <i class="fas fa-book mr-2"></i>
+                                {{ course_obj.name }}
+                            </h4>
+                            <p class="mb-0">
+                                <i class="fas fa-code mr-2"></i>{{ course_obj.course_code }}
+                                {% if course_obj.description %}
+                                <span class="ml-3">
+                                    <i class="fas fa-info-circle mr-2"></i>{{ course_obj.description|truncatewords:10 }}
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <span class="badge badge-light p-2">
+                                <i class="fas fa-tag mr-1"></i>
+                                {{ course_obj.metadata.count }} Metadata Tags
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-book mr-2"></i>
+                            {% if is_editing %}
+                                Edit Course Information
+                            {% else %}
+                                Course Information
+                            {% endif %}
+                        </h3>
+                    </div>
+
+                    <form class="form-horizontal" method="POST" id="course-form" novalidate>
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="row">
+                                {% for field in form %}
+                                    {% if field.name == 'metadata' %}
+                                        <div class="form-group col-md-12">
+                                            <label for="id_metadata" class="{% if field.field.required %}required{% endif %}">
+                                                <i class="fas fa-tags mr-1"></i>Assign Metadata
+                                            </label>
+                                            <select name="metadata" class="form-control select2bs4" id="id_metadata" multiple>
+                                                {% for metadata in form.metadata.field.queryset %}
+                                                    <option value="{{ metadata.id }}" 
+                                                        {% if is_editing and metadata in form.instance.metadata.all %}selected{% endif %}>
+                                                        {{ metadata.key }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% elif field.field.widget.input_type == "checkbox" %}
+                                        <div class="form-group col-md-6">
+                                            <div class="form-check">
+                                                {{ field }}
+                                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                                    {{ field.label }}
+                                                </label>
+                                            </div>
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-group col-md-6">
+                                            <label for="{{ field.id_for_label }}" 
+                                                   class="{% if field.field.required %}required{% endif %}">
+                                                {% if field.name == 'name' %}<i class="fas fa-book mr-1"></i>{% endif %}
+                                                {% if field.name == 'course_code' %}<i class="fas fa-code mr-1"></i>{% endif %}
+                                                {% if field.name == 'description' %}<i class="fas fa-info-circle mr-1"></i>{% endif %}
+                                                {{ field.label }}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ field.errors|first }}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            {% if is_editing and course_obj.metadata.all %}
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <div class="card card-outline card-primary">
+                                        <div class="card-header">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-tags mr-2"></i>Current Metadata Tags
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                {% for metadata in course_obj.metadata.all %}
+                                                <div class="col-md-3 mb-2">
+                                                    <span class="badge badge-info p-2">
+                                                        <i class="fas fa-tag mr-1"></i>{{ metadata.key }}
+                                                    </span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            {% if perms.students.add_course or perms.students.change_course %}
+                                <button type="submit" class="btn btn-success" id="save_course_button">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    <span class="btn-text">
+                                        <i class="fas fa-save mr-1"></i>
+                                        {% if is_editing %}Update Course{% else %}Save Course{% endif %}
+                                    </span>
+                                </button>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary float-right" onclick="history.back()">
+                                <i class="fas fa-arrow-left mr-1"></i>Go Back
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block js_files %}
+<script src="{% static 'admin/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2bs4').select2({
+        theme: 'bootstrap4',
+        placeholder: "Select metadata...",
+        allowClear: true
+    });
+
+    // Check if we're in edit mode
+    const isEditMode = {% if is_editing %}true{% else %}false{% endif %};
+    
+    // Initialize form validation
+    if (typeof globalFormValidation === "function") {
+        const validationRules = {
+            id_name: { 
+                required: true,
+                minlength: 3,
+                maxlength: 200
+            },
+            id_course_code: {
+                required: true,
+                pattern: /^[A-Z]{2,4}\d{3,4}$/
+            },
+            id_description: {
+                required: false,
+                maxlength: 1000
+            }
+        };
+        
+        const validationMessages = {
+            id_course_code: {
+                pattern: "Course code must be in format CS101 or MATH1001 (2-4 letters followed by 3-4 digits)."
+            }
+        };
+        
+        globalFormValidation('#course-form', validationRules, validationMessages);
+    }
+
+    let isSubmitting = false;
+
+    $('#course-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isSubmitting) {
+            return false;
+        }
+        
+        if ($(this).valid()) {
+            isSubmitting = true;
+            const formData = new FormData(this);
+            const sendUrl = {% if is_editing %}"{% url 'students:course-edit' course_obj.pk %}"{% else %}"{% url 'students:course-add' %}"{% endif %};
+            const redirectUrl = "{% url 'students:courses' %}";
+            
+            // Show loading state
+            $('#save_course_button').prop('disabled', true);
+            $('#save_course_button .spinner-border').removeClass('d-none');
+            $('#save_course_button .btn-text').html(
+                '<i class="fas fa-spinner fa-spin mr-1"></i>' + 
+                (isEditMode ? 'Updating...' : 'Saving...')
+            );
+            
+            // Pass the completion callback to reset the flag
+            handleAjaxRequestForDjangoForm("POST", "course-form", formData, sendUrl, redirectUrl, {
+                onComplete: function() {
+                    isSubmitting = false;
+                    $('#save_course_button').prop('disabled', false);
+                    $('#save_course_button .spinner-border').addClass('d-none');
+                    $('#save_course_button .btn-text').html(
+                        '<i class="fas fa-save mr-1"></i>' + 
+                        (isEditMode ? 'Update Course' : 'Save Course')
+                    );
+                }
+            });
+        }
+    });
+
+    // Course code validation on blur
+    $('#id_course_code').on('blur', function() {
+        const courseCode = $(this).val().toUpperCase();
+        $(this).val(courseCode);
+        
+        const courseCodeRegex = /^[A-Z]{2,4}\d{3,4}$/;
+        
+        if (courseCode && !courseCodeRegex.test(courseCode)) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Course code must be in format CS101 or MATH1001 (2-4 letters followed by 3-4 digits).</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').remove();
+        }
+    });
+
+    // Name validation
+    $('#id_name').on('input', function() {
+        const value = $(this).val();
+        
+        if (value && value.length < 3) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Course name must be at least 3 characters long.</div>');
+            }
+        } else if (value && value.length > 200) {
+            $(this).addClass('is-invalid');
+            if (!$(this).siblings('.invalid-feedback').length) {
+                $(this).after('<div class="invalid-feedback">Course name cannot exceed 200 characters.</div>');
+            }
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).siblings('.invalid-feedback').remove();
+        }
+    });
+});
+</script>
+{% endblock %}
