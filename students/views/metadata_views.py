@@ -112,7 +112,7 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
         form = MetaDataForm()
         context = {
             "form": form,
-            "is_adding_metadata": True,
+            "is_adding": True,
             "page_title": "Add Metadata",
         }
         return render(request, "students/metadata/metadata_form.html", context)
@@ -175,7 +175,7 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
         if not is_ajax:
             context = {
                 "form": form,
-                "is_adding_metadata": True,
+                "is_adding": True,
                 "page_title": "Add Metadata",
             }
             return render(request, "students/metadata/metadata_form.html", context)
@@ -189,7 +189,7 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
         context = {
             "form": form,
             "metadata_obj": metadata,
-            "is_editing_metadata": True,
+            "is_editing": True,
             "page_title": f"Edit Metadata: {metadata.key}",
         }
         return render(request, "students/metadata/metadata_form.html", context)
@@ -253,7 +253,7 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
             context = {
                 "form": form,
                 "metadata_obj": metadata,
-                "is_editing_metadata": True,
+                "is_editing": True,
                 "page_title": f"Edit Metadata: {metadata.key}",
             }
             return render(request, "students/metadata/metadata_form.html", context)

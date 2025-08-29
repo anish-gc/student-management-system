@@ -6,26 +6,8 @@
 
 
 {% block content %}
-<section class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Metadata</h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'students:metadata' %}">Metadata List</a>
-                    </li>
-                    <li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Metadata</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</section>
+{% include 'includes/content_header_in_form.html' with object_name='Metadata' list_url='students:metadata' %}
+
 
 <section class="content">
     <div class="container-fluid">
