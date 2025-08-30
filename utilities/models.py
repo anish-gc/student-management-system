@@ -48,31 +48,25 @@ class BaseModel(models.Model):
             models.Index(fields=["created_by", "is_active"]),
         ]
 
-    @classmethod
-    def get_by_reference_id(cls: Type[T], reference_id: str) -> Optional[T]:
+    def save(self, *args, **kwargs):
         """
-        Get an object by its reference_id.
-
-        Args:
-            reference_id: The reference ID to search for
-
-        Returns:
-            The object if found, None otherwise
+        Override save method to automatically set created_by and updated_by
+        using thread-local storage from middleware.
         """
         try:
-            return cls.objects.get(reference_id=reference_id)
-        except cls.DoesNotExist:
-            return None
-        except cls.MultipleObjectsReturned:
-            logger.warning(
-                f"Multiple {cls.__name__} found for reference_id={reference_id}"
-            )
-            return None
+            # Importing to avoid circular imports
+            from accounts.middleware import get_current_user
+            
+            current_user = get_current_user()
+            if current_user and current_user.is_authenticated:
+                if not self.pk:  # New instance being created
+                    self.created_by = current_user
+                else:    
+                    self.updated_by = current_user
+                
+        except ImportError:
+            logger.warning("Middleware not available for user tracking")
         except Exception as e:
-            logger.exception(f"Unexpected error in get_by_reference_id: {e}")
-            return None
-
-    def __str__(self) -> str:
-        return (
-            f"{self.__class__.__name__}(id={self.id}, reference_id={self.reference_id})"
-        )
+            logger.error(f"Error setting audit fields: {e}")
+        
+        super().save(*args, **kwargs)

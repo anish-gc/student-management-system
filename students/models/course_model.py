@@ -1,6 +1,6 @@
 from utilities.models import BaseModel
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator
 
 
 class Course(BaseModel):
