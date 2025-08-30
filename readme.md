@@ -242,7 +242,7 @@ The application should now be accessible at http://localhost:8000.
 │       ├── instructors
 │       ├── metadata
 │       └── students
-├── ticket_management_system.backup
+├── student_management_system.backup
 ├── utilities
 │   ├── custom_crud_class.py
 │   ├── models.py
