@@ -6,7 +6,7 @@ from students.models.metadata_model import MetaData
 class MetaDataForm(forms.ModelForm):
     class Meta:
         model = MetaData
-        fields = ["key", "value", "is_active"]
+        fields = ["key", "value"]
         widgets = {
             "key": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter metadata key"}
@@ -18,13 +18,11 @@ class MetaDataForm(forms.ModelForm):
                     "placeholder": "Enter metadata value",
                 }
             ),
-            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
-        labels = {"key": "Key", "value": "Value", "is_active": "Active"}
+        labels = {"key": "Key", "value": "Value"}
         help_texts = {
             "key": "Unique identifier for the metadata",
             "value": "The actual metadata content",
-            "is_active": "Whether this metadata is active",
         }
 
     def clean_key(self):

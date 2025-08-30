@@ -1,4 +1,3 @@
-# management/commands/create_sample_courses.py
 from django.core.management.base import BaseCommand
 from students.models.course_model import Course
 from students.models.metadata_model import MetaData

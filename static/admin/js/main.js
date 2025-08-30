@@ -1,7 +1,7 @@
 // Configuration for toggle actions
 const TOGGLE_CONFIG = {
    
-    staff: {
+    user: {
         urlTemplate: '/toggle/{model}/{id}/',
         fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
         successMessage: '{name} status has been updated successfully!',

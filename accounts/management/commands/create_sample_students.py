@@ -1,4 +1,3 @@
-# management/commands/create_sample_students.py
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker

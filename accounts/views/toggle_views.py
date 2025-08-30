@@ -18,7 +18,7 @@ class GenericToggleView(LoginRequiredMixin, View):
 
     # Define which models and fields are allowed to be toggled
     ALLOWED_TOGGLES = {
-        "staff": {
+        "user": {
             "model": "auth.User",  # app_label.ModelName
             "fields": ["is_active"],
             "permission_required": "auth.change_user",

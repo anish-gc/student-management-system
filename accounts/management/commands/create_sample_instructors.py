@@ -1,4 +1,3 @@
-# management/commands/create_sample_instructors.py
 from django.core.management.base import BaseCommand
 from faker import Faker
 from students.models.course_model import Course

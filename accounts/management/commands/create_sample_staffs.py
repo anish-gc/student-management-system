@@ -1,4 +1,3 @@
-# management/commands/create_sample_staff_users.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 from django.utils import timezone

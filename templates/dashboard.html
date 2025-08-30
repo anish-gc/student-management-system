@@ -198,7 +198,7 @@ Student Management System | Dashboard
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6">
-                            {% if perms.students.add_students %}
+                            {% if perms.students.add_student %}
 
                             <a href="{% url 'students:student-add' %}" class="btn btn-primary btn-block mb-2">
                                 <i class="fas fa-plus"></i> Add Student
