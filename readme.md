@@ -126,7 +126,7 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 9. Run this base commands sequentially (only if u didnot follow step 6)
+### 9. Run this base command (only if u didnot follow step 6)
 
 ```bash
 python manage.py create_sample_datas
