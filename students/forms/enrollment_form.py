@@ -1,4 +1,3 @@
-# students/forms/enrollment_form.py
 from django import forms
 from django.core.exceptions import ValidationError
 from decimal import Decimal

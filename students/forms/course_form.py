@@ -1,4 +1,3 @@
-# students/forms/course_form.py
 from django import forms
 from django.core.exceptions import ValidationError
 import re
@@ -38,7 +37,6 @@ class CourseForm(forms.ModelForm):
         if course_code:
             course_code = course_code.strip().upper()
             
-            # Check format with regex
             if not re.match(r'^[A-Z]{2,4}\d{3,4}$', course_code):
                 raise ValidationError('Course code must be in format CS101 or MATH1001 (2-4 letters followed by 3-4 digits).')
             

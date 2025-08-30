@@ -177,7 +177,6 @@ class GroupView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             context = {
                 "form": form,
@@ -212,7 +211,7 @@ class GroupView(LoginRequiredMixin, PaginatedListMixin, View):
             try:
                 group = form.save(commit=False)
                 group.save()
-                form.save_m2m()  # This saves the many-to-many relationships
+                form.save_m2m()  
 
                 success_message = f"Group '{group.name}' updated successfully!"
 
@@ -258,7 +257,6 @@ class GroupView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             context = {
                 "form": form,
@@ -276,7 +274,6 @@ class GroupView(LoginRequiredMixin, PaginatedListMixin, View):
         try:
             group = get_object_or_404(Group, pk=pk)
 
-            # Check if group has associated users
             user_count = group.user_set.count()
             if user_count > 0:
                 error_message = f"Cannot delete group '{group.name}' because it has {user_count} associated user(s). Please remove all users from this group before deleting."
@@ -322,7 +319,6 @@ class GroupView(LoginRequiredMixin, PaginatedListMixin, View):
         """Display permissions management interface for a group"""
         group = get_object_or_404(Group, pk=pk)
 
-        # Get all permissions organized by content type
         all_permissions = (
             Permission.objects.select_related("content_type")
             .exclude(content_type__app_label__in=["admin", "sessions", "contenttypes"])

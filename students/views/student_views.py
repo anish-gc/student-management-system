@@ -14,7 +14,6 @@ from utilities.pagination_mixin import PaginatedListMixin
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +60,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
         """Apply filters to the queryset"""
         queryset = self.get_queryset()
 
-        # Metadata filter
         metadata_filter = request.GET.get("metadata")
         if metadata_filter:
             queryset = queryset.filter(metadata__key=metadata_filter)
@@ -71,13 +69,10 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
             is_active = status_filter.lower() == "true"
             queryset = queryset.filter(is_active=is_active)
 
-        # Search filter
         search_query = request.GET.get("search")
         if search_query:
-        # Split the search query into parts
             search_parts = search_query.split()
             
-            # Build a Q object for the search
             query_filter = Q()
             
             for part in search_parts:
@@ -137,12 +132,10 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
 
         if form.is_valid():
             try:
-                # Create the student
                 student = form.save(commit=False)
                 student.is_active = True
                 student.save()
 
-                # Add metadata if selected
                 metadata = form.cleaned_data.get("metadata")
                 if metadata:
                     student.metadata.set(metadata)
@@ -174,7 +167,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
                 else:
                     messages.error(request, error_message)
         else:
-            # Form validation failed
             if is_ajax:
                 errors = {}
                 for field_name, field_errors in form.errors.items():
@@ -191,7 +183,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
             context = {
@@ -235,7 +226,7 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
             try:
                 student = form.save(commit=False)
                 student.save()
-                form.save_m2m()  # This saves the many-to-many relationships
+                form.save_m2m()  
 
                 success_message = f"Student {student.full_name} updated successfully!"
 
@@ -264,7 +255,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
                 else:
                     messages.error(request, error_message)
         else:
-            # Form validation failed
             if is_ajax:
                 errors = {}
                 for field_name, field_errors in form.errors.items():
@@ -281,7 +271,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
             context = {

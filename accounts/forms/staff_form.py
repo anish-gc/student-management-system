@@ -9,12 +9,12 @@ class StaffForm(forms.ModelForm):
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
         min_length=1,
         help_text="Password must be at least 8 characters long.",
-        required=False,  # Make it optional by default
+        required=False,  
     )
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
         label="Confirm Password",
-        required=False,  # Make it optional by default
+        required=False,  
     )
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
@@ -82,15 +82,14 @@ class StaffForm(forms.ModelForm):
         # If password is provided, validate it
         if password:
 
-            if len(password) < 1:
+            if len(password) < 8:
                 raise ValidationError("Password must be at least 8 characters long.")
-            # Uncomment these if you want additional password validation
-            # if not re.search(r'[A-Z]', password):
-            #     raise ValidationError('Password must contain at least one uppercase letter.')
-            # if not re.search(r'[a-z]', password):
-            #     raise ValidationError('Password must contain at least one lowercase letter.')
-            # if not re.search(r'[0-9]', password):
-            #     raise ValidationError('Password must contain at least one digit.')
+            if not re.search(r'[A-Z]', password):
+                raise ValidationError('Password must contain at least one uppercase letter.')
+            if not re.search(r'[a-z]', password):
+                raise ValidationError('Password must contain at least one lowercase letter.')
+            if not re.search(r'[0-9]', password):
+                raise ValidationError('Password must contain at least one digit.')
 
         return password
 

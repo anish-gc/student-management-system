@@ -5,7 +5,7 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Q, Count
+from django.db.models import Q
 
 from students.forms.enrollment_form import EnrollmentForm
 from students.models.enrollment_model import Enrollment
@@ -16,7 +16,6 @@ from utilities.pagination_mixin import PaginatedListMixin
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
 
@@ -116,20 +115,16 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
     )
     def enrollment_list(self, request):
         """Display paginated list of enrollments"""
-        # Get filtered queryset
         filtered_queryset = self.get_filtered_queryset(request)
 
-        # Get pagination context
         pagination_context = self.get_pagination_context(request, filtered_queryset)
 
-        # Additional context
         student_list = Student.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
         )
         course_list = Course.objects.filter(is_active=True).order_by("name")
         metadata_list = MetaData.objects.all()
 
-        # Grade choices for filter
         grade_choices = Enrollment.GRADE_CHOICES
 
         # Get some statistics
@@ -230,7 +225,6 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
                 else:
                     messages.error(request, error_message)
         else:
-            # Form validation failed
             if is_ajax:
                 errors = {}
                 for field_name, field_errors in form.errors.items():
@@ -247,7 +241,6 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             student_list = Student.objects.filter(is_active=True).order_by(
                 "first_name", "last_name"
@@ -305,7 +298,7 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
             try:
                 enrollment = form.save(commit=False)
                 enrollment.save()
-                form.save_m2m()  # This saves the many-to-many relationships
+                form.save_m2m()  
 
                 success_message = f"Enrollment for {enrollment.student.full_name} in {enrollment.course.name} updated successfully!"
 
@@ -351,7 +344,6 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             student_list = Student.objects.filter(is_active=True).order_by(
                 "first_name", "last_name"
@@ -411,11 +403,6 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
                 return redirect("students:enrollments")
 
 
-from django.http import JsonResponse
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from students.models.enrollment_model import Enrollment
-
 
 class CheckEnrollmentView(LoginRequiredMixin, View):
     """View to check for duplicate enrollments"""
@@ -448,13 +435,11 @@ class CheckEnrollmentView(LoginRequiredMixin, View):
                 is_active=True,  # Only check active enrollments
             )
 
-            # Exclude current enrollment if in edit mode
             if exclude_id:
                 queryset = queryset.exclude(id=exclude_id)
 
             exists = queryset.exists()
 
-            # If enrollment exists, get details for the warning message
             enrollment_details = None
             if exists:
                 enrollment = queryset.first()

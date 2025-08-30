@@ -82,7 +82,6 @@ class GenericToggleView(LoginRequiredMixin, View):
         return model_class.objects.get(pk=pk)
 
 
-# Alternative view with permission checking per instance
 class GenericToggleWithObjectPermissionView(GenericToggleView):
     """
     Extended version that also checks object-level permissions
@@ -108,7 +107,6 @@ class GenericToggleWithObjectPermissionView(GenericToggleView):
     def post(self, request, model_name, pk, field_name="is_active"):
         """Override to include object-level permission check"""
         try:
-            # Basic validation first
             if not self._is_toggle_allowed(model_name, field_name):
                 return JsonResponse(
                     {
@@ -118,11 +116,9 @@ class GenericToggleWithObjectPermissionView(GenericToggleView):
                     status=403,
                 )
 
-            # Get instance for object-level permission check
             model_class = self._get_model_class(model_name)
             instance = self._get_instance(model_class, pk)
 
-            # Check permissions with instance
             if not self._check_permissions(request.user, model_name, instance):
                 return JsonResponse(
                     {
@@ -132,7 +128,6 @@ class GenericToggleWithObjectPermissionView(GenericToggleView):
                     status=403,
                 )
 
-            # Continue with the rest of the logic from parent class
             display_name_field = self.ALLOWED_TOGGLES[model_name]["display_name_field"]
             display_name = getattr(instance, display_name_field, f"{model_name} #{pk}")
             old_value = getattr(instance, field_name)

@@ -27,7 +27,6 @@ class LoginView(View):
         Handle GET requests - display login form
         """
         try:
-            # Redirect authenticated users
             if request.user.is_authenticated:
                 logger.info(
                     f"Already authenticated user {request.user.username} attempted to access login page"
@@ -177,7 +176,7 @@ class LoginView(View):
 
         if not password:
             errors.append("Password is required.")
-        elif len(password) < 1:
+        elif len(password) < 8:
             errors.append("Password must be at least 3 characters long.")
 
         # Check for suspicious patterns

@@ -8,6 +8,7 @@ from utilities.models import BaseModel
 from django.db import models
 from django.core.validators import  MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+
 class Enrollment(BaseModel):
     GRADE_CHOICES = [
         ('A+', 'A+'), ('A', 'A'), ('A-', 'A-'),
@@ -28,7 +29,6 @@ class Enrollment(BaseModel):
         validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
     completion_date = models.DateField(null=True, blank=True)
-   
     metadata = models.ManyToManyField("MetaData", blank=True, related_name='enrollments')
     
     class Meta:

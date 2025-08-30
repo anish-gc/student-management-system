@@ -16,7 +16,6 @@ class Course(BaseModel):
         ],
     )
     description = models.TextField(blank=True)
-   
     metadata = models.ManyToManyField("MetaData", blank=True, related_name="courses")
 
     class Meta:

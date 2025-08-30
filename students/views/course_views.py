@@ -14,7 +14,6 @@ from utilities.pagination_mixin import PaginatedListMixin
 from django.contrib.auth.decorators import permission_required
 from django.utils.decorators import method_decorator
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
 
@@ -126,7 +125,6 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
                 course = form.save(commit=False)
                 course.save()
 
-                # Add metadata if selected
                 metadata = form.cleaned_data.get("metadata")
                 if metadata:
                     course.metadata.set(metadata)
@@ -160,7 +158,6 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
                 else:
                     messages.error(request, error_message)
         else:
-            # Form validation failed
             if is_ajax:
                 errors = {}
                 for field_name, field_errors in form.errors.items():
@@ -177,7 +174,6 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
             context = {
@@ -221,7 +217,7 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
             try:
                 course = form.save(commit=False)
                 course.save()
-                form.save_m2m()  # This saves the many-to-many relationships
+                form.save_m2m()  
 
                 success_message = (
                     f"Course {course.course_code} - {course.name} updated successfully!"
@@ -269,7 +265,6 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
             context = {

@@ -32,7 +32,5 @@ urlpatterns = [
 
 
     # toggle
-     path('toggle/<str:model_name>/<int:pk>/', 
-         GenericToggleWithObjectPermissionView.as_view(), 
-         name='generic_toggle_field'),
+     path('toggle/<str:model_name>/<int:pk>/', GenericToggleWithObjectPermissionView.as_view(), name='generic_toggle_field'),
 ]

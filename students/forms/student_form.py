@@ -54,7 +54,6 @@ class StudentForm(forms.ModelForm):
             if date_of_birth > date.today():
                 raise ValidationError('Date of birth cannot be in the future.')
             
-            # Check if student is not too old (e.g., over 100 years)
             age = (date.today() - date_of_birth).days / 365.25
             if age > 100:
                 raise ValidationError('Please enter a valid date of birth.')

@@ -30,7 +30,7 @@ This project demonstrates the use of Django’s core features (models, views, te
 
 - **Backend**: Python, Django (pure Django, no additional frameworks)
 - **Database**: PostgreSQL 16+
-- **Frontend**: Django Templates, HTML, CSS, Bootstrap (for responsive UI)
+- **Frontend**: Django Templates, HTML, CSS, Bootstrap  and Javascript for validation(for responsive UI)
 - **Authentication & Authorization**: Django’s built-in user system with role-based access
 - **Version Control:**: GitHub
 

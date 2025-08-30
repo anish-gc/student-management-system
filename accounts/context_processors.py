@@ -13,7 +13,6 @@ def sidebar_processor(request):
 
     user = request.user
 
-    # Define your complete sidebar structure with required permissions
     SIDEBAR_CONFIG = [
         {
             "name": "Dashboard",
@@ -115,7 +114,6 @@ def sidebar_processor(request):
         
         # Check if any of the user's groups has the required permission
         for group in user_groups:
-            # Get all permissions for this group
             group_permissions = group.permissions.all()
             
             # Check if the required permission exists in this group
@@ -139,13 +137,12 @@ def sidebar_processor(request):
             if not has_permission_through_groups(user, item.get("permission")):
                 continue
 
-            # Create a copy of the item to avoid modifying the original config
             processed_item = item.copy()
 
             # Process children if they exist
             if "children" in item and item["children"]:
                 processed_children = process_menu_items(item["children"], request)
-                if processed_children:  # Only add if there are accessible children
+                if processed_children: 
                     processed_item["children"] = processed_children
                     processed_item["has_children"] = True
 
@@ -169,7 +166,6 @@ def sidebar_processor(request):
 
         return accessible_items
 
-    # Process the menu based on group permissions
     sidebar_menu = process_menu_items(SIDEBAR_CONFIG, request)
 
     return {"sidebar_menu": sidebar_menu}
@@ -182,7 +178,6 @@ def get_user_role_display(user):
     elif user.is_staff:
         return "Staff"
     else:
-        # Get the first group name as role display, or default to "User"
         user_groups = user.groups.all()
         if user_groups.exists():
             return user_groups.first().name

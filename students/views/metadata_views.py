@@ -58,23 +58,19 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
         """Apply filters to the queryset"""
         queryset = self.get_queryset()
 
-        # Key filter
         key_filter = request.GET.get("key")
         if key_filter:
             queryset = queryset.filter(key__icontains=key_filter)
 
-        # Value filter
         value_filter = request.GET.get("value")
         if value_filter:
             queryset = queryset.filter(value__icontains=value_filter)
 
-        # Status filter
         status_filter = request.GET.get("status")
         if status_filter:
             is_active = status_filter.lower() == "active"
             queryset = queryset.filter(is_active=is_active)
 
-        # Search filter
         search_query = request.GET.get("search")
         if search_query:
             queryset = queryset.filter(
@@ -87,10 +83,8 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
 
     def metadata_list(self, request):
         """Display paginated list of metadata"""
-        # Get filtered queryset
         filtered_queryset = self.get_filtered_queryset(request)
 
-        # Get pagination context
         pagination_context = self.get_pagination_context(request, filtered_queryset)
 
         # Additional context
@@ -125,7 +119,6 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
 
         if form.is_valid():
             try:
-                # Create the metadata
                 metadata = form.save()
                 success_message = f"Metadata '{metadata.key}' added successfully!"
 
@@ -154,7 +147,6 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
                 else:
                     messages.error(request, error_message)
         else:
-            # Form validation failed
             if is_ajax:
                 errors = {}
                 for field_name, field_errors in form.errors.items():
@@ -171,7 +163,6 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             context = {
                 "form": form,
@@ -248,7 +239,6 @@ class MetaDataView(LoginRequiredMixin, PaginatedListMixin, View):
             else:
                 messages.error(request, "Please correct the errors below.")
 
-        # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             context = {
                 "form": form,

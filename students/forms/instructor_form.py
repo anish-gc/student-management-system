@@ -1,4 +1,3 @@
-# students/forms/instructor_form.py
 from django import forms
 from django.core.exceptions import ValidationError
 import re

@@ -9,10 +9,8 @@ class Instructor(BaseModel):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
-
     phone_number = models.CharField(max_length=15, blank=True)
     courses = models.ManyToManyField(Course, related_name='instructors', blank=True)
-   
     metadata = models.ManyToManyField("MetaData", blank=True, related_name='instructors')
     
     class Meta:

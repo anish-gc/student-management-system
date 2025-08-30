@@ -118,7 +118,6 @@ class StaffView(LoginRequiredMixin, PaginatedListMixin, View):
             "form": form,
             "groups": groups,
             "is_editing": False,
-            "is_adding_staff": True,
             "page_title": "Add Staff Member",
         }
         return render(request, "accounts/staffs/staff_form.html", context)
@@ -204,7 +203,7 @@ class StaffView(LoginRequiredMixin, PaginatedListMixin, View):
         """Display edit staff form"""
         user = get_object_or_404(User, pk=pk, is_staff=True)
 
-        form = StaffForm(instance=user, is_editing=True)  # Pass is_editing=True
+        form = StaffForm(instance=user, is_editing=True)  
        
         groups = Group.objects.all()
 
@@ -228,11 +227,9 @@ class StaffView(LoginRequiredMixin, PaginatedListMixin, View):
         if form.is_valid():
             try:
                 user = form.save(commit=False)
-                user.is_staff = True  # Ensure user remains staff
                 
-                # Only set password if it's provided (form.save() handles this now)
                 user.save()
-                form.save_m2m()  # This saves the many-to-many relationships
+                form.save_m2m() 
 
                 success_message = (
                     f"Staff member {user.get_full_name()} updated successfully!"
@@ -285,7 +282,7 @@ class StaffView(LoginRequiredMixin, PaginatedListMixin, View):
             context = {
                 "form": form,
                 "groups": groups,
-                "staff_obj": user,  # Changed from user_obj to staff_obj
+                "staff_obj": user,  
                 "is_editing": True,
                 "page_title": f"Edit Staff: {user.get_full_name()}",
             }

@@ -7,8 +7,6 @@ class Student(BaseModel):
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
     date_of_birth = models.DateField()
-  
-
     metadata = models.ManyToManyField("MetaData", blank=True, related_name="students")
 
     class Meta:

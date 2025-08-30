@@ -20,6 +20,5 @@ class CurrentUserMiddleware:
         
         response = self.get_response(request)
         
-        # Cleanup is actually optional for thread-local
-        # Python threads are short-lived in web requests
+        
         return response
