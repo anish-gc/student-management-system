@@ -92,10 +92,8 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         # Get the URL name and determine required permission
         url_name = request.resolver_match.url_name
         url_names = self.get_url_names()
-        print(f'url names is {url_names}')
-        print(f'url name is {url_name}')
+       
         permissions = self.get_permissions()
-        print(f'permissions are {permissions}')
         # Determine which permission is needed
         required_permission = None
         if url_name == url_names['list']:
@@ -104,7 +102,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
             required_permission = permissions['add']
         elif url_name in [url_names['edit'], url_names['delete']]:
             if url_name == url_names['edit']:
-                print('ma randi ho')
                 required_permission = permissions['change']
             else:  # delete
                 required_permission = permissions['delete']
@@ -113,7 +110,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         if required_permission and not request.user.has_perm(required_permission):
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
-        print('permission checked')
         return super().dispatch(request, *args, **kwargs)
     
     def get(self, request, pk=None):
@@ -172,7 +168,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         
         if obj:
             obj_name = f"{self.model._meta.model_name}_obj"
-            print(f'object name is {obj_name}')
             context[obj_name] = obj
             context['page_title'] = f"Edit {self.model._meta.verbose_name.title()}: {obj}"
         else:
@@ -280,9 +275,7 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         obj = get_object_or_404(self.model, pk=pk)
         form = self.form_class(instance=obj)
         context = self.get_form_context_data(request, form, obj=obj, is_editing=True)
-        print(context['is_editing'])
         templates = self.get_templates()
-        print(templates)
         return render(request, templates['form'], context)
     
     def edit_submit(self, request, pk):

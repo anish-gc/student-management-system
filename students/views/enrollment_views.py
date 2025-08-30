@@ -96,7 +96,7 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
         # Metadata filter
         metadata_filter = request.GET.get("metadata")
         if metadata_filter:
-            queryset = queryset.filter(metadata__name=metadata_filter)
+            queryset = queryset.filter(metadata__key=metadata_filter)
 
         # Search filter
         search_query = request.GET.get("search")

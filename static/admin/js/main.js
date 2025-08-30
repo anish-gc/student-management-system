@@ -1,13 +1,6 @@
 // Configuration for toggle actions
 const TOGGLE_CONFIG = {
-    group: {
-        urlTemplate: '/api/toggle/{model}/{id}/',
-        fieldUrlTemplate: '/api/toggle/{model}/{id}/{field}/',
-        successMessage: '{name} status has been updated successfully!',
-        errorMessage: 'Failed to update status. Please try again.',
-        activeText: 'activate',
-        inactiveText: 'deactivate'
-    },
+   
     staff: {
         urlTemplate: '/toggle/{model}/{id}/',
         fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',

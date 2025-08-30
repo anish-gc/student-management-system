@@ -65,7 +65,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
         # Metadata filter
         metadata_filter = request.GET.get("metadata")
         if metadata_filter:
-            queryset = queryset.filter(metadata__name=metadata_filter)
+            queryset = queryset.filter(metadata__key=metadata_filter)
 
         # Status filter (active/inactive)
         status_filter = request.GET.get("active_status")

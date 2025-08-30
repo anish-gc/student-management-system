@@ -64,8 +64,8 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
         # Metadata filter
         metadata_filter = request.GET.get("metadata")
         if metadata_filter:
-            queryset = queryset.filter(metadata__name=metadata_filter)
-
+            queryset = queryset.filter(metadata__key=metadata_filter)
+        print(metadata_filter)
         # Status filter (active/inactive)
         status_filter = request.GET.get("active_status")
         if status_filter:
@@ -75,12 +75,20 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
         # Search filter
         search_query = request.GET.get("search")
         if search_query:
-            queryset = queryset.filter(
-                Q(first_name__icontains=search_query)
-                | Q(last_name__icontains=search_query)
-                | Q(email__icontains=search_query)
-            )
-
+        # Split the search query into parts
+            search_parts = search_query.split()
+            
+            # Build a Q object for the search
+            query_filter = Q()
+            
+            for part in search_parts:
+                query_filter &= (
+                    Q(first_name__icontains=part) |
+                    Q(last_name__icontains=part) |
+                    Q(email__icontains=part)
+                )
+            
+            queryset = queryset.filter(query_filter)
         return queryset.distinct().order_by("-created_at")
 
     @method_decorator(
@@ -96,7 +104,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
 
         # Additional context
         metadata_list = MetaData.objects.all()
-        print(metadata_list)
         context = {
             **pagination_context,
             "metadata_list": metadata_list,

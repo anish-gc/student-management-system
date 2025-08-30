@@ -48,8 +48,8 @@ Instructor List
                                             <select class="form-control" name="metadata" id="metadataFilter">
                                                 <option value="">All Metadata</option>
                                                 {% for metadata in metadata_list %}
-                                                <option value="{{ metadata.name }}" 
-                                                    {% if current_filters.metadata == metadata.name %}selected{% endif %}>
+                                                <option value="{{ metadata.key }}" 
+                                                    {% if current_filters.metadata == metadata.key %}selected{% endif %}>
                                                     {{ metadata.key|title }}
                                                 </option>
                                                 {% endfor %}

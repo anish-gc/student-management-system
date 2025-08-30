@@ -20,7 +20,7 @@ class GenericToggleView(LoginRequiredMixin, View):
     ALLOWED_TOGGLES = {
         "staff": {
             "model": "auth.User",  # app_label.ModelName
-            "fields": ["is_active", "is_staff"],
+            "fields": ["is_active"],
             "permission_required": "auth.change_user",
             "display_name_field": "username",
         },
@@ -137,7 +137,6 @@ class GenericToggleWithObjectPermissionView(GenericToggleView):
             display_name = getattr(instance, display_name_field, f"{model_name} #{pk}")
             old_value = getattr(instance, field_name)
             new_value = not old_value
-
             with transaction.atomic():
                 setattr(instance, field_name, new_value)
                 instance.save(update_fields=[field_name])
