@@ -102,7 +102,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
 
         # Additional context
         metadata_list = MetaData.objects.all()
-        course_list = Course.objects.all()
+        course_list = Course.objects.filter(is_active=True)
 
         context = {
             **pagination_context,
@@ -125,7 +125,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
         """Display add instructor form"""
         form = InstructorForm()
         metadata_list = MetaData.objects.all()
-        course_list = Course.objects.all()
+        course_list = Course.objects.filter(is_active=True)
 
         context = {
             "form": form,
@@ -210,7 +210,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
         # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
-            course_list = Course.objects.all()
+            course_list = Course.objects.filter(is_active=True)
             context = {
                 "form": form,
                 "metadata_list": metadata_list,
@@ -231,8 +231,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
 
         form = InstructorForm(instance=instructor)
         metadata_list = MetaData.objects.all()
-        course_list = Course.objects.all()
-
+        course_list = Course.objects.filter(is_active=True)
         context = {
             "form": form,
             "metadata_list": metadata_list,
@@ -308,7 +307,7 @@ class InstructorView(LoginRequiredMixin, PaginatedListMixin, View):
         # If we reach here and it's not AJAX, render the form with errors
         if not is_ajax:
             metadata_list = MetaData.objects.all()
-            course_list = Course.objects.all()
+            course_list = Course.objects.filter(is_active=True)
             context = {
                 "form": form,
                 "metadata_list": metadata_list,

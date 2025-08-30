@@ -10,14 +10,14 @@ from students.models.course_model import Course
 
 class InstructorForm(forms.ModelForm):
     metadata = forms.ModelMultipleChoiceField(
-        queryset=MetaData.objects.all(),
+        queryset=MetaData.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={'class': 'form-control select2bs4'}),
         required=False,
         help_text="Select applicable metadata for this instructor."
     )
     
     courses = forms.ModelMultipleChoiceField(
-        queryset=Course.objects.all(),
+        queryset=Course.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={'class': 'form-control select2bs4'}),
         required=False,
         help_text="Select courses this instructor will teach."

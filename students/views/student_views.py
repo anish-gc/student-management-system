@@ -65,7 +65,6 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
         metadata_filter = request.GET.get("metadata")
         if metadata_filter:
             queryset = queryset.filter(metadata__key=metadata_filter)
-        print(metadata_filter)
         # Status filter (active/inactive)
         status_filter = request.GET.get("active_status")
         if status_filter:
@@ -103,7 +102,7 @@ class StudentView(LoginRequiredMixin, PaginatedListMixin, View):
         pagination_context = self.get_pagination_context(request, filtered_queryset)
 
         # Additional context
-        metadata_list = MetaData.objects.all()
+        metadata_list = MetaData.objects.filter(is_active=True)
         context = {
             **pagination_context,
             "metadata_list": metadata_list,

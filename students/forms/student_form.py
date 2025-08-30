@@ -10,7 +10,7 @@ from students.models.student_model import Student
 
 class StudentForm(forms.ModelForm):
     metadata = forms.ModelMultipleChoiceField(
-        queryset=MetaData.objects.all(),
+        queryset=MetaData.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={'class': 'form-control select2bs4'}),
         required=False,
         help_text="Select applicable metadata for this student."

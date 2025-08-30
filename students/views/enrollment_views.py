@@ -173,13 +173,11 @@ class EnrollmentView(LoginRequiredMixin, PaginatedListMixin, View):
         student_list = Student.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
         )
-        course_list = Course.objects.filter(is_active=True).order_by("name")
         metadata_list = MetaData.objects.all()
 
         context = {
             "form": form,
             "student_list": student_list,
-            "course_list": course_list,
             "metadata_list": metadata_list,
             "is_adding": True,
             "page_title": "Add Enrollment",

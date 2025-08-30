@@ -55,7 +55,7 @@ class CourseView(LoginRequiredMixin, PaginatedListMixin, View):
 
     def get_queryset(self):
         """Get base queryset for courses"""
-        return Course.objects.all()
+        return Course.objects.filter(is_active=True)
 
     def get_filtered_queryset(self, request):
         """Apply filters to the queryset"""

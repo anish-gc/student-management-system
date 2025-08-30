@@ -11,7 +11,7 @@ from students.models.metadata_model import MetaData
 
 class EnrollmentForm(forms.ModelForm):
     metadata = forms.ModelMultipleChoiceField(
-        queryset=MetaData.objects.all(),
+        queryset=MetaData.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={'class': 'form-control select2bs4'}),
         required=False,
         help_text="Select applicable metadata for this enrollment."
@@ -50,7 +50,8 @@ class EnrollmentForm(forms.ModelForm):
         # Set initial values
         if not self.instance.pk:  # New enrollment
             self.fields['is_active'].initial = True
-        
+        self.fields['course'].queryset = Course.objects.filter(is_active=True)
+        self.fields['student'].queryset = Student.objects.filter(is_active=True)
         # Make student and course required
         self.fields['student'].required = True
         self.fields['course'].required = True
