@@ -283,15 +283,31 @@ Enrollment List
                                                 <br><small>In Progress</small>
                                             {% endif %}
                                         </td>
-                                        <td class="status-cell text-center">
+                                        <td class="status-cell" data-user-id="{{ enrollment.id }}">
                                             {% if enrollment.is_active %}
                                                 <span class="badge badge-success">
                                                     <i class="fa fa-check"></i> Active
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'enrollment', '{{ enrollment.id }}', '{{ enrollment }}', true, 'is_active')"
+                                                    class="text-danger">
+                                                        <i class="fa fa-toggle-off"></i> Deactivate
+                                                    </a>
+                                                </small>
                                             {% else %}
                                                 <span class="badge badge-danger">
                                                     <i class="fa fa-times"></i> Inactive
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'enrollment', '{{ enrollment.id }}', '{{ enrollment }}', false, 'is_active')"
+                                                    class="text-success">
+                                                        <i class="fa fa-toggle-on"></i> Activate
+                                                    </a>
+                                                </small>
                                             {% endif %}
                                         </td>
                                         <td class="metadata-cell">

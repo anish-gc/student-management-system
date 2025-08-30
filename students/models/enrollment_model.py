@@ -28,7 +28,6 @@ class Enrollment(BaseModel):
         validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
     completion_date = models.DateField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
    
     metadata = models.ManyToManyField("MetaData", blank=True, related_name='enrollments')
     

@@ -4,6 +4,7 @@ from accounts.views.authentication_views import LoginView, LogoutView
 from accounts.views.dashboard_views import DashboardView
 from accounts.views.group_views import GroupView
 from accounts.views.staff_views import StaffView
+from accounts.views.toggle_views import GenericToggleWithObjectPermissionView
 
 
 app_name = "accounts"
@@ -28,4 +29,10 @@ urlpatterns = [
     path("groups/<int:pk>/edit/", GroupView.as_view(), name="group-edit"),
     path("groups/<int:pk>/delete/", GroupView.as_view(), name="group-delete"),
     path("groups/<int:pk>/permissions/", GroupView.as_view(), name="group-manage-permissions"),
+
+
+    # toggle
+     path('toggle/<str:model_name>/<int:pk>/', 
+         GenericToggleWithObjectPermissionView.as_view(), 
+         name='generic_toggle_field'),
 ]

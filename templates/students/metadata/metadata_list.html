@@ -139,15 +139,31 @@ Metadata List
                                                 {{ metadata.value }}
                                             {% endif %}
                                         </td>
-                                        <td class="status-cell">
+                                        <td class="status-cell" data-user-id="{{ metadata.id }}">
                                             {% if metadata.is_active %}
                                                 <span class="badge badge-success">
                                                     <i class="fa fa-check"></i> Active
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'metadata', '{{ metadata.id }}', '{{ metadata.key }}', true, 'is_active')"
+                                                    class="text-danger">
+                                                        <i class="fa fa-toggle-off"></i> Deactivate
+                                                    </a>
+                                                </small>
                                             {% else %}
                                                 <span class="badge badge-danger">
                                                     <i class="fa fa-times"></i> Inactive
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'metadata', '{{ metadata.id }}', '{{ metadata.key }}', false, 'is_active')"
+                                                    class="text-success">
+                                                        <i class="fa fa-toggle-on"></i> Activate
+                                                    </a>
+                                                </small>
                                             {% endif %}
                                         </td>
                                         <td>{{ metadata.created_at|date:"M d, Y H:i" }}</td>

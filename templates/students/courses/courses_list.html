@@ -94,6 +94,7 @@ Course List
                                         <th>Course Name</th>
                                         <th>Description</th>
                                         <th width="15%">Metadata</th>
+                                        <th>Active</th>
                                         {% if perms.students.change_course %}
                                         <th width="12%">Actions</th>
                                         {% endif %}
@@ -132,7 +133,33 @@ Course List
                                                 <span class="badge badge-secondary">No Metadata</span>
                                             {% endfor %}
                                         </td>
-                                       
+                                         <td class="status-cell" data-user-id="{{ course.id }}">
+                                            {% if course.is_active %}
+                                                <span class="badge badge-success">
+                                                    <i class="fa fa-check"></i> Active
+                                                </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'course', '{{ course.id }}', '{{ course.name }}', true, 'is_active')"
+                                                    class="text-danger">
+                                                        <i class="fa fa-toggle-off"></i> Deactivate
+                                                    </a>
+                                                </small>
+                                            {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fa fa-times"></i> Inactive
+                                                </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'course', '{{ course.id }}', '{{ course.name }}', false, 'is_active')"
+                                                    class="text-success">
+                                                        <i class="fa fa-toggle-on"></i> Activate
+                                                    </a>
+                                                </small>
+                                            {% endif %}
+                                        </td>
                                         {% if perms.students.change_course %}
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">

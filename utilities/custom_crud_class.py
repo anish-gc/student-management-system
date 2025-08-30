@@ -84,11 +84,42 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         """Generate error message for CRUD operations"""
         return f"Error {action}ing {self.model._meta.verbose_name}: {str(error)}"
     
+    def dispatch(self, request, *args, **kwargs):
+        """Override dispatch to check permissions before routing"""
+        # Store request for permission checking
+        self.request = request
+        
+        # Get the URL name and determine required permission
+        url_name = request.resolver_match.url_name
+        url_names = self.get_url_names()
+        print(f'url names is {url_names}')
+        print(f'url name is {url_name}')
+        permissions = self.get_permissions()
+        print(f'permissions are {permissions}')
+        # Determine which permission is needed
+        required_permission = None
+        if url_name == url_names['list']:
+            required_permission = permissions['view']
+        elif url_name == url_names['add']:
+            required_permission = permissions['add']
+        elif url_name in [url_names['edit'], url_names['delete']]:
+            if url_name == url_names['edit']:
+                print('ma randi ho')
+                required_permission = permissions['change']
+            else:  # delete
+                required_permission = permissions['delete']
+        
+        # Check permission if required
+        if required_permission and not request.user.has_perm(required_permission):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        print('permission checked')
+        return super().dispatch(request, *args, **kwargs)
+    
     def get(self, request, pk=None):
         """Handle GET requests based on URL name"""
         url_name = request.resolver_match.url_name
         url_names = self.get_url_names()
-        
         if url_name == url_names['add']:
             return self.add_view(request)
         elif url_name == url_names['edit'] and pk:
@@ -141,6 +172,7 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         
         if obj:
             obj_name = f"{self.model._meta.model_name}_obj"
+            print(f'object name is {obj_name}')
             context[obj_name] = obj
             context['page_title'] = f"Edit {self.model._meta.verbose_name.title()}: {obj}"
         else:
@@ -168,8 +200,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         """Check if object can be deleted - override in subclasses"""
         return True, None  # (can_delete, error_message)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['view'], raise_exception=True)(func)(self, *args, **kwargs))
     def list_view(self, request):
         """Display paginated list"""
         filtered_queryset = self.get_filtered_queryset(request)
@@ -183,8 +213,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         templates = self.get_templates()
         return render(request, templates['list'], context)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['add'], raise_exception=True)(func)(self, *args, **kwargs))
     def add_view(self, request):
         """Display add form"""
         form = self.form_class()
@@ -193,8 +221,6 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
         templates = self.get_templates()
         return render(request, templates['form'], context)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['add'], raise_exception=True)(func)(self, *args, **kwargs))
     def add_submit(self, request):
         """Process add form submission"""
         form = self.form_class(request.POST)
@@ -249,19 +275,16 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
             templates = self.get_templates()
             return render(request, templates['form'], context)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['change'], raise_exception=True)(func)(self, *args, **kwargs))
     def edit_view(self, request, pk):
         """Display edit form"""
         obj = get_object_or_404(self.model, pk=pk)
         form = self.form_class(instance=obj)
         context = self.get_form_context_data(request, form, obj=obj, is_editing=True)
-        
+        print(context['is_editing'])
         templates = self.get_templates()
+        print(templates)
         return render(request, templates['form'], context)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['change'], raise_exception=True)(func)(self, *args, **kwargs))
     def edit_submit(self, request, pk):
         """Process edit form submission"""
         obj = get_object_or_404(self.model, pk=pk)
@@ -317,14 +340,10 @@ class BaseCRUDView(LoginRequiredMixin, PaginatedListMixin, View):
             templates = self.get_templates()
             return render(request, templates['form'], context)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['delete'], raise_exception=True)(func)(self, *args, **kwargs))
     def delete_view(self, request, pk):
         """Handle delete view (if needed for confirmation page)"""
         return self.delete_submit(request, pk)
     
-    @method_decorator(lambda func: lambda self, *args, **kwargs: 
-                     permission_required(self.get_permissions()['delete'], raise_exception=True)(func)(self, *args, **kwargs))
     def delete_submit(self, request, pk):
         """Delete an object"""
         is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
@@ -455,184 +474,3 @@ class ManyToManyMixin:
                     getattr(instance, field_name).set(field_data)
         
         return instance
-
-
-# Specific view implementations using the base classes
-
-# staff_views.py
-from accounts.forms.staff_form import StaffForm
-from django.contrib.auth.models import User, Group
-
-
-class StaffView(FilterMixin, BaseCRUDView):
-    model = User
-    form_class = StaffForm
-    template_base = "accounts/staffs/staff"
-    url_namespace = "accounts"
-    url_name_base = "staff"
-    
-    # Search and filter configuration
-    search_fields = ['first_name', 'last_name', 'username', 'email']
-    filter_fields = {
-        'group': 'groups__name',
-        'active_status': 'is_active',
-    }
-    
-    def get_queryset(self):
-        return User.objects.filter(is_staff=True)
-    
-    def get_list_context_data(self, request, pagination_context):
-        context = super().get_list_context_data(request, pagination_context)
-        context.update({
-            'groups': Group.objects.all(),
-            'current_filters': self.get_current_filters(request),
-        })
-        return context
-    
-    def get_form_context_data(self, request, form, obj=None, is_editing=False):
-        context = super().get_form_context_data(request, form, obj, is_editing)
-        context.update({
-            'groups': Group.objects.all(),
-            'is_adding_staff': not is_editing,
-        })
-        return context
-    
-    def process_form_save(self, form, obj=None):
-        user = form.save(commit=False)
-        user.is_staff = True
-        if not obj:  # New user
-            user.is_active = True
-        user.save()
-        
-        # Handle groups
-        groups = form.cleaned_data.get("groups")
-        if groups:
-            user.groups.set(groups)
-        
-        return user
-    
-    def can_delete_object(self, obj):
-        if obj.is_superuser:
-            return False, "Cannot delete superuser account."
-        elif obj == self.request.user:
-            return False, "You cannot delete your own account."
-        return True, None
-    
-    def get_success_message(self, action, obj):
-        obj_name = obj.get_full_name() if hasattr(obj, 'get_full_name') else str(obj)
-        messages = {
-            'add': f"Staff member {obj_name} added successfully!",
-            'edit': f"Staff member {obj_name} updated successfully!",
-            'delete': f"Staff member {obj_name} deleted successfully!",
-        }
-        return messages.get(action, f"Operation completed successfully!")
-
-
-# group_views.py
-from accounts.forms.group_form import GroupForm
-from django.contrib.auth.models import Group, Permission
-
-
-class GroupView(FilterMixin, BaseCRUDView):
-    model = Group
-    form_class = GroupForm
-    template_base = "accounts/groups/groups"
-    url_namespace = "accounts"
-    url_name_base = "group"
-    
-    search_fields = ['name']
-    filter_fields = {
-        'user_count': 'user_count',  # Special handling needed
-        'has_permissions': 'permissions__isnull',  # Special handling needed
-    }
-    
-    def get_queryset(self):
-        from django.db.models import Count
-        return Group.objects.annotate(user_count=Count("user")).all()
-    
-    def apply_field_filters(self, queryset, request):
-        # Handle special filters
-        user_count_filter = request.GET.get("user_count")
-        if user_count_filter == "empty":
-            queryset = queryset.filter(user_count=0)
-        elif user_count_filter == "has_users":
-            queryset = queryset.filter(user_count__gt=0)
-        
-        permission_filter = request.GET.get("has_permissions")
-        if permission_filter:
-            if permission_filter.lower() == "true":
-                queryset = queryset.filter(permissions__isnull=False)
-            elif permission_filter.lower() == "false":
-                queryset = queryset.filter(permissions__isnull=True)
-        
-        return queryset
-    
-    def get_default_ordering(self):
-        return "name"
-    
-    def can_delete_object(self, obj):
-        user_count = obj.user_set.count()
-        if user_count > 0:
-            return False, f"Cannot delete group '{obj.name}' because it has {user_count} associated user(s). Please remove all users from this group before deleting."
-        return True, None
-    
-    def process_form_save(self, form, obj=None):
-        group = form.save(commit=False)
-        group.save()
-        
-        # Handle permissions
-        permissions = form.cleaned_data.get("permissions")
-        if permissions:
-            group.permissions.set(permissions)
-        
-        return group
-
-
-# course_views.py
-from students.forms.course_form import CourseForm
-from students.models.course_model import Course
-
-
-class CourseView(FilterMixin, MetadataMixin, ManyToManyMixin, BaseCRUDView):
-    model = Course
-    form_class = CourseForm
-    template_base = "students/courses/courses"
-    url_namespace = "students"
-    url_name_base = "course"
-    
-    search_fields = ['name', 'course_code', 'description']
-    filter_fields = {
-        'metadata': 'metadata__name',
-    }
-    
-    def get_default_ordering(self):
-        return "course_code"
-    
-    def get_success_message(self, action, obj):
-        obj_name = f"{obj.course_code} - {obj.name}" if hasattr(obj, 'course_code') else str(obj)
-        messages = {
-            'add': f"Course {obj_name} added successfully!",
-            'edit': f"Course {obj_name} updated successfully!",
-            'delete': f"Course {obj_name} deleted successfully!",
-        }
-        return messages.get(action, f"Operation completed successfully!")
-
-
-# Similar implementations for other views...
-# student_views.py, instructor_views.py, enrollment_views.py, metadata_views.py
-
-# Usage example for remaining views:
-
-class StudentView(FilterMixin, MetadataMixin, ManyToManyMixin, BaseCRUDView):
-    model = None  # Import and set Student model
-    form_class = None  # Import and set StudentForm
-    template_base = "students/students/students"
-    url_namespace = "students"
-    url_name_base = "student"
-    search_fields = ['first_name', 'last_name', 'email']
-    filter_fields = {
-        'metadata': 'metadata__name',
-        'active_status': 'is_active',
-    }
-
-# Similar pattern for InstructorView, EnrollmentView, MetaDataView...

@@ -141,15 +141,31 @@ Staff List
                                                 {% endfor %}
                                             {% endif %}
                                         </td>
-                                        <td class="status-cell">
+                                        <td class="status-cell" data-user-id="{{ user.id }}">
                                             {% if user.is_active %}
                                                 <span class="badge badge-success">
                                                     <i class="fa fa-check"></i> Active
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'staff', '{{ user.id }}', '{{ user.username }}', true, 'is_active')"
+                                                    class="text-danger">
+                                                        <i class="fa fa-toggle-off"></i> Deactivate
+                                                    </a>
+                                                </small>
                                             {% else %}
                                                 <span class="badge badge-danger">
                                                     <i class="fa fa-times"></i> Inactive
                                                 </span>
+                                                <br>
+                                                <small>
+                                                    <a href="#" 
+                                                    onclick="confirmToggle(event, 'staff', '{{ user.id }}', '{{ user.username }}', false, 'is_active')"
+                                                    class="text-success">
+                                                        <i class="fa fa-toggle-on"></i> Activate
+                                                    </a>
+                                                </small>
                                             {% endif %}
                                         </td>
                                        

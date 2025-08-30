@@ -1,3 +1,253 @@
+// Configuration for toggle actions
+const TOGGLE_CONFIG = {
+    group: {
+        urlTemplate: '/api/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/api/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    staff: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    student: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+
+
+    instructor: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    course: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/api/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    enrollment: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    metadata: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: '{name} status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    },
+    default: {
+        urlTemplate: '/toggle/{model}/{id}/',
+        fieldUrlTemplate: '/toggle/{model}/{id}/{field}/',
+        successMessage: 'Status has been updated successfully!',
+        errorMessage: 'Failed to update status. Please try again.',
+        activeText: 'activate',
+        inactiveText: 'deactivate'
+    }
+};
+
+/**
+ * Confirm toggle action with SweetAlert
+ * @param {Event} event - The click event
+ * @param {string} modelType - The type of model (user, group, etc.)
+ * @param {string} instanceId - The instance ID
+ * @param {string} instanceName - The instance name for display
+ * @param {boolean} currentStatus - Current active status (true for active, false for inactive)
+ * @param {string} fieldName - The field name to toggle (default: 'is_active')
+ * @param {Object} customConfig - Optional custom configuration
+ */
+function confirmToggle(event, modelType, instanceId, instanceName, currentStatus, fieldName = 'is_active', customConfig = null) {
+    event.preventDefault();
+
+    // Get configuration for this model type
+    const config = customConfig || TOGGLE_CONFIG[modelType] || TOGGLE_CONFIG.default;
+
+    // Determine action text based on current status
+    const actionText = currentStatus ? config.inactiveText : config.activeText;
+    const newStatus = currentStatus ? 'inactive' : 'active';
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to ${actionText} ${instanceName}. Do you want to continue?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: currentStatus ? '#dc3545' : '#28a745', // Red for deactivate, green for activate
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, ${actionText} it!`,
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return toggleInstance(modelType, instanceId, instanceName, fieldName, config);
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const response = result.value;
+            if (response && response.success) {
+                Swal.fire({
+                    title: 'Updated!',
+                    text: response.message || config.successMessage.replace('{name}', instanceName),
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Update the status badge in the UI
+                    updateStatusBadge(instanceId, response[fieldName] || response.is_active, modelType, fieldName);
+
+                    // Optional: Redirect if specified in response
+                    if (response.redirect) {
+                        window.location.href = response.redirect;
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: response.message || config.errorMessage,
+                    icon: 'error'
+                });
+            }
+        }
+    });
+}
+
+/**
+ * Toggle instance status via AJAX
+ * @param {string} modelType - The type of model
+ * @param {string} instanceId - The instance ID
+ * @param {string} instanceName - The instance name
+ * @param {string} fieldName - The field name to toggle
+ * @param {Object} config - Configuration object
+ */
+async function toggleInstance(modelType, instanceId, instanceName, fieldName, config) {
+    try {
+        // Build the URL - use field-specific URL if field is not 'is_active'
+        let toggleUrl;
+        if (fieldName === 'is_active') {
+            toggleUrl = config.urlTemplate
+                .replace('{model}', modelType)
+                .replace('{id}', instanceId);
+        } else {
+            toggleUrl = config.fieldUrlTemplate
+                .replace('{model}', modelType)
+                .replace('{id}', instanceId)
+                .replace('{field}', fieldName);
+        }
+        const response = await fetch(toggleUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                'csrfmiddlewaretoken': getCSRFToken()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        return {
+            success: false,
+            message: config.errorMessage
+        };
+    }
+}
+
+/**
+ * Update the status badge in the UI after successful toggle
+ * @param {string} instanceId - The instance ID
+ * @param {boolean} newValue - New field value
+ * @param {string} modelType - The model type
+ * @param {string} fieldName - The field name that was toggled
+ */
+function updateStatusBadge(instanceId, newValue, modelType = 'user', fieldName = 'is_active') {
+    // Find the status cell for this instance
+    const statusCell = document.querySelector(`[data-${modelType}-id="${instanceId}"] .status-cell`);
+
+    if (statusCell) {
+        const badge = statusCell.querySelector('.badge');
+        const icon = badge.querySelector('i');
+        const toggleLink = statusCell.querySelector('a');
+
+        if (fieldName === 'is_active') {
+            if (newValue) {
+                // Update to active state
+                badge.className = 'badge badge-success';
+                icon.className = 'fa fa-check';
+                badge.innerHTML = '<i class="fa fa-check"></i> Active';
+
+                // Update toggle link
+                if (toggleLink) {
+                    toggleLink.className = 'text-danger';
+                    toggleLink.innerHTML = '<i class="fa fa-toggle-off"></i> Deactivate';
+                    toggleLink.onclick = function (e) {
+                        confirmToggle(e, modelType, instanceId, 'Item', true, fieldName);
+                    };
+                }
+            } else {
+                // Update to inactive state
+                badge.className = 'badge badge-danger';
+                icon.className = 'fa fa-times';
+                badge.innerHTML = '<i class="fa fa-times"></i> Inactive';
+
+                // Update toggle link
+                if (toggleLink) {
+                    toggleLink.className = 'text-success';
+                    toggleLink.innerHTML = '<i class="fa fa-toggle-on"></i> Activate';
+                    toggleLink.onclick = function (e) {
+                        confirmToggle(e, modelType, instanceId, 'Item', false, fieldName);
+                    };
+                }
+            }
+        } else {
+            // Handle other boolean fields generically
+            const fieldDisplay = fieldName.replace('is_', '').replace('_', ' ');
+            if (newValue) {
+                badge.className = 'badge badge-success';
+                badge.innerHTML = `<i class="fa fa-check"></i> ${fieldDisplay}`;
+            } else {
+                badge.className = 'badge badge-secondary';
+                badge.innerHTML = `<i class="fa fa-times"></i> Not ${fieldDisplay}`;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
 // Configuration for different model types
 const DELETE_CONFIG = {
     'group': {
@@ -133,7 +383,6 @@ async function deleteInstance(modelType, instanceId, instanceName, config) {
         return data;
 
     } catch (error) {
-        console.error(`Error deleting ${modelType}:`, error);
         return {
             success: false,
             message: config.errorMessage
@@ -161,7 +410,6 @@ function getCSRFToken() {
 function confirmSave(event, title) {
     // const pathname = event.target.href ?? event.target.parentElement.href
     const form = document.querySelector("form");
-    // console.log(form)
 
     event.preventDefault();
 
@@ -322,7 +570,6 @@ function handleAjaxRequestForDjangoForm(method, formId, formData, sendUrl, redir
     const token = $form.find("input[name=csrfmiddlewaretoken]").val();
 
     if (!token) {
-        console.error('CSRF token not found');
         if (typeof toastr !== 'undefined') {
             toastr.error('Security token missing. Please refresh the page.');
         }
@@ -374,12 +621,7 @@ function handleAjaxRequestForDjangoForm(method, formId, formData, sendUrl, redir
         },
 
         error: function (xhr, status, error) {
-            console.error("AJAX Error:", {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                responseText: xhr.responseText,
-                error: error
-            });
+          
 
             let errorMessage = "An error occurred. Please try again.";
 

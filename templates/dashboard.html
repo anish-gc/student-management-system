@@ -38,9 +38,11 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-user-graduate"></i>
                     </div>
+                    {% if perms.auth.view_user %}
                     <a href="{% url 'students:students' %}" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -54,9 +56,12 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-user-check"></i>
                     </div>
+                    {% if perms.students.view_student %}
+
                     <a href="{% url 'students:students' %}?active_status=true" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -70,9 +75,12 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-book"></i>
                     </div>
+                    {% if perms.students.view_course %}
+
                     <a href="{% url 'students:courses' %}" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -86,9 +94,12 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-book-open"></i>
                     </div>
+                    {% if perms.students.view_course %}
+
                     <a href="{% url 'students:courses' %}?active_status=true" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {%endif %}
                 </div>
             </div>
         </div>
@@ -104,9 +115,13 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-clipboard-list"></i>
                     </div>
+                    {% if perms.students.view_enrollment %}
+
                     <a href="{% url 'students:enrollments' %}" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {%endif %}
+
                 </div>
             </div>
 
@@ -120,9 +135,13 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-tasks"></i>
                     </div>
+                    {% if perms.students.view_enrollment %}
+
                     <a href="{% url 'students:enrollments' %}?active_status=true" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {%endif %}
+
                 </div>
             </div>
 
@@ -136,9 +155,13 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-chalkboard-teacher"></i>
                     </div>
+                    {% if perms.auth.view_user %}
+
                     <a href="{% url 'accounts:staffs' %}" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {%endif %}
+
                 </div>
             </div>
 
@@ -152,9 +175,13 @@ Student Management System | Dashboard
                     <div class="icon">
                         <i class="fas fa-user-tie"></i>
                     </div>
+                    {% if perms.students.view_enrollment %}
+
                     <a href="{% url 'accounts:staffs' %}?is_active=true" class="small-box-footer">
                         More info <i class="fas fa-arrow-circle-right"></i>
                     </a>
+                    {%endif %}
+
                 </div>
             </div>
         </div>
@@ -171,20 +198,36 @@ Student Management System | Dashboard
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6">
+                            {% if perms.students.add_students %}
+
                             <a href="{% url 'students:student-add' %}" class="btn btn-primary btn-block mb-2">
                                 <i class="fas fa-plus"></i> Add Student
                             </a>
+                            {%endif %}
+
+                            {% if perms.students.add_course %}
+
                             <a href="{% url 'students:course-add' %}" class="btn btn-warning btn-block mb-2">
                                 <i class="fas fa-plus"></i> Add Course
                             </a>
                         </div>
+                        {%endif %}
+
                         <div class="col-6">
+                            {% if perms.students.add_enrollment %}
+
                             <a href="{% url 'students:enrollment-add' %}" class="btn btn-secondary btn-block mb-2">
                                 <i class="fas fa-plus"></i> New Enrollment
                             </a>
+                            {%endif %}
+
+                            {% if perms.auth.add_user %}
+
                             <a href="{% url 'accounts:staff-add' %}" class="btn btn-danger btn-block mb-2">
                                 <i class="fas fa-plus"></i> Add Staff
                             </a>
+                            {%endif %}
+
                         </div>
                     </div>
                 </div>
